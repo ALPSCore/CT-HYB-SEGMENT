@@ -34,7 +34,9 @@ add_library(alps_hyb_exp STATIC ${QMC_HYBRIDIZATION_SOURCE})
 target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES})
 set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-# fixme
 add_executable(hybridization hybmain.cpp)
 target_link_libraries(hybridization alps_hyb_exp ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
+set_target_properties(hybridization PROPERTIES POSITION_INDEPENDENT_CODE ON)
+install (TARGETS hybridization DESTINATION bin )
+
 
