@@ -29,6 +29,7 @@
 #ifndef HYB_EVALUATE
 #define HYB_EVALUATE
 #include <boost/math/special_functions/bessel.hpp>
+#include <alps/mc/api.hpp>
 
 void evaluate_basics(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
 void evaluate_time(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
