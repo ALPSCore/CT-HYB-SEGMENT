@@ -80,8 +80,8 @@ int main(int argc, char* argv[]){
       if (global_mpi_rank==0){
         alps::results_type<hybridization>::type results = collect_results(s);
         std::string output_path = parameters["BASEPATH"].as<std::string>()+std::string("/simulation/results");
-        alps::save_results(results, parameters, parameters["OUTPUT_FILE"], output_path); //"/simulation/results");
-        master_final_tasks(results, parameters, parameters["OUTPUT_FILE"]);
+        alps::save_results(results, parameters, parameters["outputfile"], output_path); //"/simulation/results");
+        master_final_tasks(results, parameters, parameters["outputfile"]);
 #ifdef ALPS_HAVE_MPI
       } else{ //on any slave: send back results to master.
         collect_results(s);
