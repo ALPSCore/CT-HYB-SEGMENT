@@ -27,20 +27,38 @@
  *
  *****************************************************************************/
 
+#include <boost/local_function.hpp>
 #include"hyb.hpp"
 #include"alps/numeric/vector_functions.hpp"
 
 using namespace alps::numeric;
 
-#ifdef ALPS_NGS_USE_NEW_ALEA
-  using alps::accumulator::max_bin_number;
-  #define NUM_BINS_CONSTRUCTOR_ARG max_bin_number=NUM_BINS
-#else
-  #define NUM_BINS_CONSTRUCTOR_ARG NUM_BINS
-#endif
+// MOVE to alpscore
+template<typename T, typename T2>
+std::vector<T> operator / (std::vector<T> lhs, T2 x) {
+  T BOOST_LOCAL_FUNCTION_TPL(bind x, T l) { return l/x; } BOOST_LOCAL_FUNCTION_NAME_TPL(div1)
+  std::vector<T> out(lhs);
+  std::transform(lhs.begin(), lhs.end(), out.begin(), div1);
+  return lhs;
+}
 
-typedef alps::accumulator::RealVectorObservable vec_obs_t;
-typedef alps::accumulator::RealObservable obs_t;
+template<typename T, typename T2>
+std::vector<T> operator * (std::vector<T> lhs, T2 x) {
+  T BOOST_LOCAL_FUNCTION_TPL(bind x, T l) { return l*x; } BOOST_LOCAL_FUNCTION_NAME_TPL(div1)
+    std::vector<T> out(lhs);
+    std::transform(lhs.begin(), lhs.end(), out.begin(), div1);
+    return lhs;
+  }
+
+  template<typename T, typename T2>
+  std::vector<T> operator * (T2 x, std::vector<T> y){return y*x;}
+
+using alps::accumulators::max_bin_number;
+#define NUM_BINS_CONSTRUCTOR_ARG max_bin_number=NUM_BINS
+
+typedef alps::accumulators::FullBinningAccumulator<std::vector<double> > vec_obs_t;
+typedef alps::accumulators::FullBinningAccumulator<double> obs_t;
+typedef alps::accumulators::MeanAccumulator<std::vector<double> > simple_vec_t;
 
 void hybridization::create_measurements(){//called once in the constructor
 
@@ -147,8 +165,8 @@ void hybridization::create_measurements(){//called once in the constructor
         measurements << alps::accumulator::SimpleRealVectorObservable(g2wr_name.str());
         measurements << alps::accumulator::SimpleRealVectorObservable(g2wi_name.str());
 #else
-        measurements << alps::ngs::SimpleRealVectorObservable(g2wr_name.str());
-        measurements << alps::ngs::SimpleRealVectorObservable(g2wi_name.str());
+        measurements << simple_vec_t(g2wr_name.str());
+        measurements << simple_vec_t(g2wi_name.str());
 #endif
       }
       if(MEASURE_h2w){
@@ -158,13 +176,13 @@ void hybridization::create_measurements(){//called once in the constructor
         measurements << alps::accumulator::SimpleRealVectorObservable(h2wr_name.str());
         measurements << alps::accumulator::SimpleRealVectorObservable(h2wi_name.str());
 #else
-        measurements << alps::ngs::SimpleRealVectorObservable(h2wr_name.str());
-        measurements << alps::ngs::SimpleRealVectorObservable(h2wi_name.str());
+        measurements << simple_vec_t(h2wr_name.str());
+        measurements << simple_vec_t(h2wi_name.str());
 #endif
       }
     }
   }
-  measurements.reset(true);
+  measurements.reset(); // before : was reset(true)
 
   //initialize measurement vectors
   sgn=0.;
