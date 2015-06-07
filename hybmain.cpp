@@ -30,8 +30,9 @@
 #include "hyb.hpp"
 #include "hybevaluate.hpp"
 #include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <alps/mc/parseargs.hpp>
 #ifdef ALPS_HAVE_MPI
-#include <alps/mcmpiadapter.hpp>
+#include <alps/mc/mpiadapter.hpp>
 typedef alps::mcmpiadapter<hybridization> sim_type;
 #else
 typedef hybridization sim_type;
@@ -39,25 +40,16 @@ typedef hybridization sim_type;
 
 //stops the simulation if time > end_time or if signals received.
 bool stop_callback(boost::posix_time::ptime const & end_time) {
-  static alps::ngs::signal signal;
+  static alps::signal signal;
   return !signal.empty() || boost::posix_time::second_clock::local_time() > end_time;
 }
 void master_final_tasks(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, const std::string &output_name);
 int global_mpi_rank;
 
-#ifdef BUILD_PYTHON_MODULE
-//compile it as a python module (requires boost::python library)
-using namespace boost::python;
-
-void solve(boost::python::dict parms_){
-  alps::parameters_type<hybridization>::type parms(parms_);
-  std::string output_file = boost::lexical_cast<std::string>(parms["BASENAME"]|"results")+std::string(".out.h5");
-#else
 int main(int argc, char** argv){
   //read in command line options
-  alps::mcoptions options(argc, argv);
-  if (options.valid) {
-    std::string output_file = options.output_file;
+  alps::parseargs options(argc, argv);
+  std::string output_file = options.output_file;
 
 #ifdef ALPS_HAVE_MPI
     //boot up MPI environment
@@ -67,10 +59,9 @@ int main(int argc, char** argv){
     //create ALPS parameters from hdf5 parameter file
     alps::parameters_type<hybridization>::type parms(alps::hdf5::archive(options.input_file, alps::hdf5::archive::READ));
     try {
-      if(options.time_limit!=0)
+      if(options.timelimit!=0)
         throw std::invalid_argument("time limit is passed in the parameter file!");
       if(!parms.defined("MAX_TIME")) throw std::runtime_error("parameter MAX_TIME is not defined. How long do you want to run the code for? (in seconds)");
-#endif
 
 #ifndef ALPS_HAVE_MPI
       global_mpi_rank=0;
@@ -87,8 +78,8 @@ int main(int argc, char** argv){
       //on the master: collect MC results and store them in file, then postprocess
       if (global_mpi_rank==0){
         alps::results_type<hybridization>::type results = collect_results(s);
-        std::string output_path = boost::lexical_cast<std::string>(parms["BASEPATH"]|"")+"/simulation/results";
-        save_results(results, parms, output_file, output_path); //"/simulation/results");
+        std::string output_path = boost::lexical_cast<std::string>(parms["BASEPATH"])+"/simulation/results";
+        alps::save_results(results, parms, output_file, output_path); //"/simulation/results");
         master_final_tasks(results, parms, output_file);
 #ifdef ALPS_HAVE_MPI
       } else{ //on any slave: send back results to master.
@@ -96,11 +87,8 @@ int main(int argc, char** argv){
       }
       c.barrier();
 #else
-      }
+    }
 #endif
-#ifdef BUILD_PYTHON_MODULE
-    return;
-#else
     }
     catch(std::exception& exc){
       std::cerr<<exc.what()<<std::endl;
@@ -110,10 +98,6 @@ int main(int argc, char** argv){
       std::cerr << "Fatal Error: Unknown Exception!\n";
       return -2;
     }
-  }//options.valid
-  return 0;
-#endif
-
 }
 
 
@@ -134,14 +118,3 @@ void master_final_tasks(const alps::results_type<hybridization>::type &results,
   evaluate_sector_statistics(results,parms,solver_output);
   evaluate_2p(results, parms, solver_output);
 }
-
-#ifdef BUILD_PYTHON_MODULE
-BOOST_PYTHON_MODULE(cthyb)
-{
-    def("solve",solve);//define python-callable run method
-};
-#endif
-
-
-
-

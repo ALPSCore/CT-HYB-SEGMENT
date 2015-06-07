@@ -11,6 +11,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Request the ALPSCore package:
 find_package(ALPSCore COMPONENTS accumulators params mc hdf5)
+find_package(LAPACK)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
@@ -34,6 +35,6 @@ target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES})
 set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # fixme
-#add_executable(hybridization hybmain.cpp)
-#target_link_libraries(hybridization alps_hyb_exp ${ALPSCore_LIBRARIES})
+add_executable(hybridization hybmain.cpp)
+target_link_libraries(hybridization alps_hyb_exp ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
 

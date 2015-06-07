@@ -61,11 +61,11 @@ double hybmatrix::hyb_weight_change_insert(const segment &new_segment, int orbit
   //std::cout<<clblue<<"last entry S is: "<<S<<cblack<<std::endl;
   
   S_tilde_inv=S;
-  fortran_int_t s=size();
+  int s=size();
   if(s>0){
     right_multiply(Q, PinvQ); //dgemv
-    fortran_int_t inc=1;
-    S_tilde_inv-=FORTRAN_ID(ddot)(&s, &(R[0]),&inc,&(PinvQ[0]),&inc);
+    int inc=1;
+    S_tilde_inv-=blas::ddot_(&s, &(R[0]),&inc,&(PinvQ[0]),&inc);
   }
   //a -1 from the anticommutator from the wraparound segment
   if(new_segment.t_end_<new_segment.t_start_){
@@ -87,16 +87,16 @@ void hybmatrix::insert_segment(const segment &new_segment, int orbital){
   //last element
   operator()(last, last)=1./S_tilde_inv;
   
-   fortran_int_t sm1=size()-1;
+   int sm1=size()-1;
   if(sm1>0){ //this is exactly the content of the loops above, in dger/dgemv blas calls.
     char trans='T', notrans='N';
     double alpha=-1./S_tilde_inv, beta=0.;
-    fortran_int_t inc=1;
-    fortran_int_t ms=memory_size();
-    FORTRAN_ID(dgemv)(&  trans, &sm1, &sm1, &alpha, &(operator()(0,0)), &ms, &(Q[0]), &inc, &beta, &(operator()(0,last)), &ms);
-    FORTRAN_ID(dgemv)(&notrans, &sm1, &sm1, &alpha, &(operator()(0,0)), &ms, &(R[0]), &inc, &beta, &(operator()(last,0)), &inc);
+    int inc=1;
+    int ms=memory_size();
+    blas::dgemv_(&  trans, &sm1, &sm1, &alpha, &(operator()(0,0)), &ms, &(Q[0]), &inc, &beta, &(operator()(0,last)), &ms);
+    blas::dgemv_(&notrans, &sm1, &sm1, &alpha, &(operator()(0,0)), &ms, &(R[0]), &inc, &beta, &(operator()(last,0)), &inc);
     alpha=S_tilde_inv;
-    FORTRAN_ID(dger)(&sm1, &sm1, &alpha,&(operator()(last,0)), &inc, &(operator()(0,last)), &ms, &(operator()(0,0)), &ms);
+    blas::dger_(&sm1, &sm1, &alpha,&(operator()(last,0)), &inc, &(operator()(0,last)), &ms, &(operator()(0,0)), &ms);
   }
   
   // add the new segment times:
@@ -162,12 +162,12 @@ void hybmatrix::remove_segment(const segment &new_segment, int orbital){
    operator()(i,j) -=operator()(i,last)*operator()(last,j)/operator()(last,last);
    }
    }*/
-  fortran_int_t sm1=size()-1;
+  int sm1=size()-1;
   if(sm1>0){ //this is exactly the content of the loops above, in dger/dgemv blas calls.
     double alpha=-1./operator()(last,last);
-    fortran_int_t inc=1;
-    fortran_int_t ms=memory_size();
-    FORTRAN_ID(dger)(&sm1, &sm1, &alpha,&(operator()(last,0)), &inc, &(operator()(0,last)), &ms, &(operator()(0,0)), &ms);
+    int inc=1;
+    int ms=memory_size();
+    blas::dger_(&sm1, &sm1, &alpha,&(operator()(last,0)), &inc, &(operator()(0,last)), &ms, &(operator()(0,0)), &ms);
   }
   
   
