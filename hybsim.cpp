@@ -46,7 +46,7 @@ hyb_config(parms)
   nacc.assign(7,0.);
   nprop.assign(7,0.);
   sweep_count=0;
-  output_period=parms["OUTPUT_PERIOD"]|100000;
+  output_period=parms["OUTPUT_PERIOD"];
   //lasttime = boost::chrono::steady_clock::now();
   //delay = boost::chrono::seconds(parms["OUTPUT_PERIOD"]|600);
   
@@ -70,28 +70,28 @@ hyb_config(parms)
   
   //initializing updates parameters
   N_meas = parms["N_MEAS"];                                                        //number of updates per measurement
-  N_hist_orders = parms["N_HISTOGRAM_ORDERS"]|50;                                  //number of orders that are measured for the order histogram
-  MEASURE_timeseries = parms["TIMESERIES"]|0;
-  NUM_BINS = parms["NUM_BINS"]|0;
+  N_hist_orders = parms["N_HISTOGRAM_ORDERS"];//|50;                                  //number of orders that are measured for the order histogram
+  MEASURE_timeseries = parms["TIMESERIES"];//|0;
+  NUM_BINS = parms["NUM_BINS"];//|0;
   //std::cerr << "NUM_BINS = " << NUM_BINS << std::endl;
   //initializing measurement parameters
-  spin_flip = parms["SPINFLIP"]| 0;                                                //whether to perform local spin-flip updates
-  global_flip = parms["GLOBALFLIP"]| 0;                                                //whether to perform global spin-flip updates
-  MEASURE_nnt = parms["MEASURE_nnt"]| 0;                                           //measure density-density correlation function in imaginary time
-  MEASURE_nnw = parms["MEASURE_nnw"]| 0;                                           //measure density-density correlation function in frequency
-  MEASURE_nn = parms["MEASURE_nn"]|0;                                              //measure density-density correlation function at equal times
-  MEASURE_g2w = parms["MEASURE_g2w"]|0;                                            //measure two-particle Green function
-  MEASURE_h2w = parms["MEASURE_h2w"]|0;                                            //measure higher-order two-particle correlator
-  MEASURE_time = parms["MEASURE_time"]|1;                                          //measure in imaginary time (ON by default)
-  MEASURE_freq = parms["MEASURE_freq"]|0;                                          //measure in frequency space
-  MEASURE_legendre = parms["MEASURE_legendre"]|0;                                  //measure in legendre polynomials
-  MEASURE_sector_statistics = parms["MEASURE_sector_statistics"]|0;                //measure sector statistics
-  N_w = parms["N_MATSUBARA"]|0;                                                    //number of Matsubara frequencies for gw
-  N_l = parms["N_LEGENDRE"]|0;                                                     //number of Legendre polynomial coefficients
+  spin_flip = parms["SPINFLIP"];//| 0;                                                //whether to perform local spin-flip updates
+  global_flip = parms["GLOBALFLIP"];//| 0;                                                //whether to perform global spin-flip updates
+  MEASURE_nnt = parms["MEASURE_nnt"];//| 0;                                           //measure density-density correlation function in imaginary time
+  MEASURE_nnw = parms["MEASURE_nnw"];//| 0;                                           //measure density-density correlation function in frequency
+  MEASURE_nn = parms["MEASURE_nn"];//|0;                                              //measure density-density correlation function at equal times
+  MEASURE_g2w = parms["MEASURE_g2w"];//|0;                                            //measure two-particle Green function
+  MEASURE_h2w = parms["MEASURE_h2w"];//|0;                                            //measure higher-order two-particle correlator
+  MEASURE_time = parms["MEASURE_time"];//|1;                                          //measure in imaginary time (ON by default)
+  MEASURE_freq = parms["MEASURE_freq"];//|0;                                          //measure in frequency space
+  MEASURE_legendre = parms["MEASURE_legendre"];//|0;                                  //measure in legendre polynomials
+  MEASURE_sector_statistics = parms["MEASURE_sector_statistics"];//|0;                //measure sector statistics
+  N_w = parms["N_MATSUBARA"];//|0;                                                    //number of Matsubara frequencies for gw
+  N_l = parms["N_LEGENDRE"];//|0;                                                     //number of Legendre polynomial coefficients
   N_t = parms["N_TAU"];                                                            //number of tau slices for gt
-  N_nn = parms["N_nn"]|0;                                                          //number of tau-points on which density density correlator is measured
-  N_w2 = parms["N_w2"]|0;                                                          //number of Matsubara frequency points for two-particle measurements
-  N_W = parms["N_W"]|0;                                                            //number of bosonic Matsubara frequency points for two-particle measurements
+  N_nn = parms["N_nn"];//|0;                                                          //number of tau-points on which density density correlator is measured
+  N_w2 = parms["N_w2"];//|0;                                                          //number of Matsubara frequency points for two-particle measurements
+  N_W = parms["N_W"];//|0;                                                            //number of bosonic Matsubara frequency points for two-particle measurements
   N_w_aux = (N_w2+N_W>1 ? N_w2+N_W-1 : 0);                                         //number of Matsubara frequency points for the measurment of M(w1,w2)
   
   //create measurement objects
@@ -126,56 +126,56 @@ void hybridization::sanity_check(const alps::params &parms){
   //check whether the input parameters make sense before computing
   //NOTE: these checks are likely not to be complete, passing all checks does not guarantee all parameters to be meaningful!
   
-  //first check that all mandatory parameters are defined
-  if(!parms.defined("N_TAU")) throw std::invalid_argument("please specify the parameter N_TAU");
-  if(!parms.defined("BETA")) throw std::invalid_argument("please specify parameter BETA for inverse temperature");
-  if(!parms.defined("N_MEAS")) throw std::invalid_argument("please specify parameter N_MEAS for measurement interval");
-  if(!parms.defined("THERMALIZATION") ||
-     !parms.defined("SWEEPS") ||
-     !parms.defined("N_ORBITALS") ) throw std::invalid_argument("please specify parameters THERMALIZATION, SWEEPS, and N_ORBITALS");
+  //first check that all mandatory parameters are exists
+  if(!parms.exists("N_TAU")) throw std::invalid_argument("please specify the parameter N_TAU");
+  if(!parms.exists("BETA")) throw std::invalid_argument("please specify parameter BETA for inverse temperature");
+  if(!parms.exists("N_MEAS")) throw std::invalid_argument("please specify parameter N_MEAS for measurement interval");
+  if(!parms.exists("THERMALIZATION") ||
+     !parms.exists("SWEEPS") ||
+     !parms.exists("N_ORBITALS") ) throw std::invalid_argument("please specify parameters THERMALIZATION, SWEEPS, and N_ORBITALS");
   
   //check paramater that are conditionally required
-  if(parms["MEASURE_freq"]|false && !parms.defined("N_MATSUBARA")) throw std::invalid_argument("please specify parameter N_MATSUBARA for # of Matsubara frequencies to be measured");
+  if(parms["MEASURE_freq"] && !parms.exists("N_MATSUBARA")) throw std::invalid_argument("please specify parameter N_MATSUBARA for # of Matsubara frequencies to be measured");
   
-  if(parms["MEASURE_legendre"]|false && !parms.defined("N_LEGENDRE")) throw std::invalid_argument("please specify parameter N_LEGENDRE for # of Legendre coefficients to be measured");
-  if(parms["MEASURE_legendre"]|false && !parms.defined("N_MATSUBARA")) throw std::invalid_argument("please specify parameter N_MATSUBARA for # of Matsubara frequencies");
-  if(parms["MEASURE_nnt"]|false && !parms.defined("N_nn")) throw std::invalid_argument("please specify the parameter N_nn for # of imaginary time points for the density-density correlator");
-  if(parms["MEASURE_nnw"]|false && !parms.defined("N_W")) throw std::invalid_argument("please specify the parameter N_W for # of bosonic frequencies for the density-density correlator");
-  if(parms["MEASURE_g2w"]|false || parms["MEASURE_h2w"]|false ){
-    if(!parms.defined("N_w2") ) throw std::invalid_argument("please specify the parameter N_w2 for # of fermionic Matsubara frequencies for two-particle functions");
-    if(!parms.defined("N_W") ) throw std::invalid_argument("please specify the parameter N_W for # of bosonic Matsubara frequencies for two-particle functions");
+  if(parms["MEASURE_legendre"] && !parms.exists("N_LEGENDRE")) throw std::invalid_argument("please specify parameter N_LEGENDRE for # of Legendre coefficients to be measured");
+  if(parms["MEASURE_legendre"] && !parms.exists("N_MATSUBARA")) throw std::invalid_argument("please specify parameter N_MATSUBARA for # of Matsubara frequencies");
+  if(parms["MEASURE_nnt"] && !parms.exists("N_nn")) throw std::invalid_argument("please specify the parameter N_nn for # of imaginary time points for the density-density correlator");
+  if(parms["MEASURE_nnw"] && !parms.exists("N_W")) throw std::invalid_argument("please specify the parameter N_W for # of bosonic frequencies for the density-density correlator");
+  if(parms["MEASURE_g2w"] || parms["MEASURE_h2w"] ){
+    if(!parms.exists("N_w2") ) throw std::invalid_argument("please specify the parameter N_w2 for # of fermionic Matsubara frequencies for two-particle functions");
+    if(!parms.exists("N_W") ) throw std::invalid_argument("please specify the parameter N_W for # of bosonic Matsubara frequencies for two-particle functions");
     if((int)parms["N_w2"]%2!=0) throw std::invalid_argument("parameter N_w2 must be even");
   }
-  if(parms["COMPUTE_VERTEX"]|false){
-    if( !(parms["MEASURE_freq"]|false) ) throw std::invalid_argument("frequency measurement is required for computing the vertex, please set MEASURE_freq=1");
+  if(parms["COMPUTE_VERTEX"]){
+    if( !(parms["MEASURE_freq"]) ) throw std::invalid_argument("frequency measurement is required for computing the vertex, please set MEASURE_freq=1");
     
-    if(! (parms["MEASURE_g2w"]|false || parms["MEASURE_h2w"]|false ) ) throw std::invalid_argument("at least one two-particle quantity is required for computing the vertex, set MEASURE_g2w=1 or MEASURE_h2w=1");
+    if(! (parms["MEASURE_g2w"] || parms["MEASURE_h2w"] ) ) throw std::invalid_argument("at least one two-particle quantity is required for computing the vertex, set MEASURE_g2w=1 or MEASURE_h2w=1");
     if((int) parms["N_MATSUBARA"] < ((int)parms["N_w2"]/2 + (int)parms["N_W"] - 1) ) throw std::invalid_argument("for computing the vertex, N_MATSUBARA must be at least N_w2/2+N_W-1");
   }
-  VERBOSE = (parms["VERBOSE"]|false);
+  VERBOSE = (parms["VERBOSE"]);
   
   return;
 }
 
 
 void hybridization::show_info(const alps::params &parms, int crank){
-  if(!(parms["VERBOSE"]|false)) return;
+  if(!(parms["VERBOSE"])) return;
 
   //provide info on what is measured and how long the simulation will run
   if(!crank){
-    if(parms["MEASURE_time"]|true) std::cout << "measuring gt" << std::endl;
-    if(parms["MEASURE_freq"]|false) std::cout << "measuring gw" << std::endl << "measuring fw" << std::endl;
-    if(parms["MEASURE_legendre"]|false) std::cout << "measuring gl" << std::endl << "measuring fl" << std::endl;
-    if(parms["MEASURE_g2w"]|false) std::cout << "measuring g2w" << std::endl;
-    if(parms["MEASURE_h2w"]|false) std::cout << "measuring h2w" << std::endl;
-    if(parms["MEASURE_nn"]|false) std::cout << "measuring nn" << std::endl;
-    if(parms["MEASURE_nnt"]|false) std::cout << "measuring nnt" << std::endl;
-    if(parms["MEASURE_nnw"]|false) std::cout << "measuring nnw" << std::endl;
-    if(parms["MEASURE_sector_statistics"]|false) std::cout << "measuring sector statistics" << std::endl;
-    if(parms["COMPUTE_VERTEX"]|false) std::cout << "vertex will be computed" << std::endl;
-    if(parms.defined("RET_INT_K")) std::cout << "using retarded interaction" << std::endl;
-    if(parms.defined("U_MATRIX")) std::cout << "reading U matrix from file " << parms["U_MATRIX"] << std::endl;
-    if(parms.defined("MU_VECTOR")) std::cout << "reading MU vector from file " << parms["MU_VECTOR"] << std::endl;
+    if(parms["MEASURE_time"]) std::cout << "measuring gt" << std::endl;
+    if(parms["MEASURE_freq"]) std::cout << "measuring gw" << std::endl << "measuring fw" << std::endl;
+    if(parms["MEASURE_legendre"]) std::cout << "measuring gl" << std::endl << "measuring fl" << std::endl;
+    if(parms["MEASURE_g2w"]) std::cout << "measuring g2w" << std::endl;
+    if(parms["MEASURE_h2w"]) std::cout << "measuring h2w" << std::endl;
+    if(parms["MEASURE_nn"]) std::cout << "measuring nn" << std::endl;
+    if(parms["MEASURE_nnt"]) std::cout << "measuring nnt" << std::endl;
+    if(parms["MEASURE_nnw"]) std::cout << "measuring nnw" << std::endl;
+    if(parms["MEASURE_sector_statistics"]) std::cout << "measuring sector statistics" << std::endl;
+    if(parms["COMPUTE_VERTEX"]) std::cout << "vertex will be computed" << std::endl;
+    if(parms["RET_INT_K"]) std::cout << "using retarded interaction" << std::endl;
+    if(parms["U_MATRIX"]) std::cout << "reading U matrix from file " << parms["U_MATRIX"] << std::endl;
+    if(parms["MU_VECTOR"]) std::cout << "reading MU vector from file " << parms["MU_VECTOR"] << std::endl;
     std::cout << "Simulation scheduled to run " << parms["MAX_TIME"] << " seconds" << std::endl << std::endl;
   }
   return;
