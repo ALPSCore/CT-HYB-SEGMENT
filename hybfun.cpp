@@ -31,9 +31,9 @@
 //noffidag_orbitals: number of offdiagonal orbitals. ndiag_orbitals: number
 //of diagonal orbitals. 
 hybfun::hybfun(const alps::params &p):
-green_function<double>(p["N_TAU"]+1, 1, p["N_ORBITALS"])
+green_function<double>(p["N_TAU"].as<int>()+1, 1, p["N_ORBITALS"])
 {
-  if(!p.defined("N_TAU") || (int)(p["N_TAU"])==0) throw std::invalid_argument("define parameter N_TAU, the number of hybridization time slices!");
+  if(!p.exists("N_TAU") || (int)(p["N_TAU"])==0) throw std::invalid_argument("define parameter N_TAU, the number of hybridization time slices!");
   beta_=p["BETA"];
 
   //read in Green's function from a file
@@ -60,11 +60,11 @@ for(std::size_t i=0; i<ntime();++i)
 //In case of text files the file format is index - hyb_1 - hyb2 - hyb3 - ... in columns that go from time=0 to time=beta. Note that
 //the hybridization function is in imaginary time and always positive between zero and \beta.
 void hybfun::read_hybridization_function(const alps::params &p){
-  if(!p.defined("DELTA")) throw(std::invalid_argument(std::string("Parameter DELTA missing, filename for hybridization function not specified.")));
-  std::string fname=p["DELTA"].cast<std::string>();
-  if(p.defined("DELTA_IN_HDF5") && p["DELTA_IN_HDF5"].cast<bool>()){//attempt to read from h5 archive
+  if(!p.exists("DELTA")) throw(std::invalid_argument(std::string("Parameter DELTA missing, filename for hybridization function not specified.")));
+  std::string fname=p["DELTA"].as<std::string>();
+  if(p.exists("DELTA_IN_HDF5") && p["DELTA_IN_HDF5"].as<bool>()){//attempt to read from h5 archive
     alps::hdf5::archive ar(fname, alps::hdf5::archive::READ);
-    if(p.defined("DMFT_FRAMEWORK") && p["DMFT_FRAMEWORK"].cast<bool>()){//read in as green_function
+    if(p.exists("DMFT_FRAMEWORK") && p["DMFT_FRAMEWORK"].as<bool>()){//read in as green_function
       read_hdf5(ar,"/Delta");
     }
     else{//plain hdf5
@@ -81,18 +81,18 @@ void hybfun::read_hybridization_function(const alps::params &p){
   else{//read from text file
     std::ifstream infile(fname.c_str());
     if(!infile.good()){
-      throw(std::invalid_argument(std::string("could not open hybridization file (text format) ") + p["DELTA"] + " for Delta function"));
+      throw(std::invalid_argument(std::string("could not open hybridization file (text format) ") + p["DELTA"].as<std::string>() + " for Delta function"));
     }
     for (std::size_t i=0; i<ntime(); i++) {
       if(!infile.good()){
-        throw(std::invalid_argument(std::string("could not read hybridization file (text format) ") + p["DELTA"] + ". probably wrong number of lines"));
+        throw(std::invalid_argument(std::string("could not read hybridization file (text format) ") + p["DELTA"].as<std::string>() + ". probably wrong number of lines"));
       }
       double dummy;
       infile >> dummy;
       //std::cout<<i<<" "<<ntime()<<" "<<"dummy: "<<dummy<<std::endl;
       for (std::size_t j=0; j<nflavor(); j++){
         if(!infile.good()){
-          throw(std::invalid_argument(std::string("could not read hybridization file (text format) ") + p["DELTA"] + ". probably wrong number of columns"));
+          throw(std::invalid_argument(std::string("could not read hybridization file (text format) ") + p["DELTA"].as<std::string>() + ". probably wrong number of columns"));
         }
         double delta;
         infile >> delta;
