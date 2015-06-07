@@ -35,9 +35,9 @@ interaction_matrix::interaction_matrix(const alps::params &p){
   val_.resize(n_orbitals_*n_orbitals_,0.);
   //if the parameter U_MATRIX is exists: read in the U_MATRIX from file
   if(p.exists("U_MATRIX")){
-    if(p.exists("U") && !global_mpi_rank){ std::cout << "Warning::parameter U_MATRIX exists, ignoring parameter U" << std::flush << std::endl; };
+    if(p.exists("U")){ throw std::invalid_argument("Redundant parameters: parameter U_MATRIX exists, as does parameter U. Specify one of them!");}
     std::string ufilename=p["U_MATRIX"].as<std::string>();
-    if(p.exists("UMATRIX_IN_HDF5") && p["UMATRIX_IN_HDF5"].as<bool>()){//attempt to read from h5 archive
+    if(p["UMATRIX_IN_HDF5"]){
       alps::hdf5::archive ar(ufilename, alps::hdf5::archive::READ);
       ar>>alps::make_pvp("/Umatrix",val_);
     }
@@ -53,10 +53,9 @@ interaction_matrix::interaction_matrix(const alps::params &p){
         }
     }
   }else{
-    if(!p.exists("U")) throw std::invalid_argument("please specify either U (and, optionally, U' and J) or a file U_MATRIX in your parameter file");
-    double U=(double)(p["U"]);
-    double J=(double)(p["J"]); // 0
-    double Uprime = (p["U'"]); // (U-2*J)
+    double U=p["U"]; //no default
+    double J=p["J"]; //
+    double Uprime = p["Uprime"]; //
     assemble(U, Uprime, J);
   }
 }

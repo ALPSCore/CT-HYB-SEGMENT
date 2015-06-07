@@ -54,7 +54,6 @@ std::vector<T> operator * (std::vector<T> lhs, T2 x) {
   std::vector<T> operator * (T2 x, std::vector<T> y){return y*x;}
 
 using alps::accumulators::max_bin_number;
-#define NUM_BINS_CONSTRUCTOR_ARG max_bin_number=NUM_BINS
 
 typedef alps::accumulators::FullBinningAccumulator<std::vector<double> > vec_obs_t;
 typedef alps::accumulators::FullBinningAccumulator<double> obs_t;
@@ -63,10 +62,9 @@ typedef alps::accumulators::MeanAccumulator<std::vector<double> > simple_vec_t;
 void hybridization::create_measurements(){//called once in the constructor
 
   //basic measurements for all orbitals
-  //  std::cerr << "NUM_BINS = " << NUM_BINS << std::endl;
-  measurements<< vec_obs_t("order_histogram_total",NUM_BINS_CONSTRUCTOR_ARG);
-  measurements<< vec_obs_t("sector_statistics",NUM_BINS_CONSTRUCTOR_ARG);
-  measurements<< obs_t("Sign",NUM_BINS_CONSTRUCTOR_ARG);
+  measurements<< vec_obs_t("order_histogram_total");
+  measurements<< vec_obs_t("sector_statistics");
+  measurements<< obs_t("Sign");
   
   g2wr_names.resize(n_orbitals); g2wi_names.resize(n_orbitals);
   h2wr_names.resize(n_orbitals); h2wi_names.resize(n_orbitals);
@@ -125,38 +123,38 @@ void hybridization::create_measurements(){//called once in the constructor
     if(MEASURE_h2w) F2w[i].resize(N_w_aux*N_w_aux);
 
     //initialize measurements for observable names
-    measurements << vec_obs_t(g_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
-    measurements << vec_obs_t(f_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
-    measurements << obs_t(density_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
+    measurements << vec_obs_t(g_name.str());
+    measurements << vec_obs_t(f_name.str());
+    measurements << obs_t(density_name.str());
 
-    measurements << vec_obs_t(order_histogram_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
-    measurements << obs_t(order_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
+    measurements << vec_obs_t(order_histogram_name.str());
+    measurements << obs_t(order_name.str());
 
-    measurements << vec_obs_t(gwr_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
-    measurements << vec_obs_t(gwi_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
-    measurements << vec_obs_t(fwr_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
-    measurements << vec_obs_t(fwi_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
+    measurements << vec_obs_t(gwr_name.str());
+    measurements << vec_obs_t(gwi_name.str());
+    measurements << vec_obs_t(fwr_name.str());
+    measurements << vec_obs_t(fwi_name.str());
 
-    measurements << vec_obs_t(gl_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
-    measurements << vec_obs_t(fl_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
+    measurements << vec_obs_t(gl_name.str());
+    measurements << vec_obs_t(fl_name.str());
 
     if(MEASURE_nn){
       for(std::size_t j=0;j<i;++j){//j<i not j<=i
         std::stringstream nn_name; nn_name<<"nn_"<<i<<"_"<<j; nn_names[i].push_back(nn_name.str());
         nn[i][j]=0.;
-        measurements << obs_t(nn_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
+        measurements << obs_t(nn_name.str());
       }
     }
     for(std::size_t j=0;j<=i;++j){//two-particle quantities
       if(MEASURE_nnt){
         std::stringstream nnt_name; nnt_name<<"nnt_"<<i<<"_"<<j; nnt_names[i].push_back(nnt_name.str());
         nnt[i][j].resize(N_nn+1, 0.);
-        measurements << vec_obs_t(nnt_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
+        measurements << vec_obs_t(nnt_name.str());
       }
       if(MEASURE_nnw){
         std::stringstream nnw_re_name; nnw_re_name<<"nnw_re_"<<i<<"_"<<j; nnw_re_names[i].push_back(nnw_re_name.str());
         nnw_re[i][j].resize(N_W, 0.);
-        measurements << vec_obs_t(nnw_re_name.str(),NUM_BINS_CONSTRUCTOR_ARG);
+        measurements << vec_obs_t(nnw_re_name.str());
       }
       if(MEASURE_g2w){    //the two-particle Green's function is large and error is usually not needed -> declare as simple observable
         std::stringstream g2wr_name; g2wr_name<<"g2w_re_"<<i<<"_"<<j; g2wr_names[i].push_back(g2wr_name.str());

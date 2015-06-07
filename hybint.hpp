@@ -61,11 +61,11 @@ class chemical_potential{
 public:
   chemical_potential(const alps::params &p){
     extern int global_mpi_rank;
-    val_.resize(p["N_ORBITALS"], p["MU"]); //TODO define default p[MU] = 0
-    if(p.exists("MU_VECTOR")){
-      if(p.exists("MU") && !global_mpi_rank){ std::cout << "Warning::parameter MU_VECTOR defined, ignoring parameter MU" << std::flush << std::endl; };
+    if(p.exists("MU"))
+      val_.resize(p["N_ORBITALS"], p["MU"]); //TODO define default p[MU] = 0
+    else if(p.exists("MU_VECTOR")){
       std::string mufilename=p["MU_VECTOR"].as<std::string>();
-      if(p.exists("MU_IN_HDF5") && p["MU_IN_HDF5"].as<bool>()){//attempt to read from h5 archive
+      if(p["MU_IN_HDF5"]){
         alps::hdf5::archive ar(mufilename, alps::hdf5::archive::READ);
         ar>>alps::make_pvp("/MUvector",val_);
       }
@@ -80,7 +80,8 @@ public:
           if(!mu_file.good()) throw std::runtime_error("Problem reading in MU_VECTOR.");
         }
       }
-    }
+    }else
+      throw std::invalid_argument("please either define MU or MU_VECTOR in your parameters");
   }
   std::size_t n_orbitals(void)const { return val_.size(); }
   const double &operator[] (std::size_t flavor)const {

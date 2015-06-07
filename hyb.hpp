@@ -66,11 +66,8 @@ private:
   bool VERBOSE;
   int crank;
   int csize;
-  int output_period;
   clock_t start_time;
   clock_t end_time;
-  //boost::chrono::steady_clock::time_point lasttime;
-  //boost::chrono::steady_clock::duration delay;
 
   //initialize all measurements and measurement vectors (with 0)
   void create_measurements();
@@ -125,8 +122,6 @@ private:
 
   //updates parameters
   std::size_t N_meas;
-  std::size_t NUM_BINS; // Number of bins for the measurments
-  std::size_t MEASURE_timeseries; // fixed binning instead of detailed binning
   
   //measurement parameters
   std::size_t N_w;    //number of Matsubara frequency points

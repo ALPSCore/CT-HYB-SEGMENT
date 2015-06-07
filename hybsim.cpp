@@ -47,9 +47,7 @@ hyb_config(parms)
   nacc.assign(7,0.);
   nprop.assign(7,0.);
   sweep_count=0;
-  output_period=parms["OUTPUT_PERIOD"];
   //lasttime = boost::chrono::steady_clock::now();
-  //delay = boost::chrono::seconds(parms["OUTPUT_PERIOD"]|600);
   
   update_type.clear();
   update_type.push_back("change zero state   ");
@@ -72,9 +70,6 @@ hyb_config(parms)
   //initializing updates parameters
   N_meas = parms["N_MEAS"];                                                        //number of updates per measurement
   N_hist_orders = parms["N_HISTOGRAM_ORDERS"];//|50;                                  //number of orders that are measured for the order histogram
-  MEASURE_timeseries = parms["TIMESERIES"];//|0;
-  NUM_BINS = parms["NUM_BINS"];//|0;
-  //std::cerr << "NUM_BINS = " << NUM_BINS << std::endl;
   //initializing measurement parameters
   spin_flip = parms["SPINFLIP"];//| 0;                                                //whether to perform local spin-flip updates
   global_flip = parms["GLOBALFLIP"];//| 0;                                                //whether to perform global spin-flip updates
@@ -127,14 +122,6 @@ void hybridization::sanity_check(const alps::params &parms){
   //check whether the input parameters make sense before computing
   //NOTE: these checks are likely not to be complete, passing all checks does not guarantee all parameters to be meaningful!
   
-  //first check that all mandatory parameters are exists
-  if(!parms.exists("N_TAU")) throw std::invalid_argument("please specify the parameter N_TAU");
-  if(!parms.exists("BETA")) throw std::invalid_argument("please specify parameter BETA for inverse temperature");
-  if(!parms.exists("N_MEAS")) throw std::invalid_argument("please specify parameter N_MEAS for measurement interval");
-  if(!parms.exists("THERMALIZATION") ||
-     !parms.exists("SWEEPS") ||
-     !parms.exists("N_ORBITALS") ) throw std::invalid_argument("please specify parameters THERMALIZATION, SWEEPS, and N_ORBITALS");
-  
   //check paramater that are conditionally required
   if(parms["MEASURE_freq"] && !parms.exists("N_MATSUBARA")) throw std::invalid_argument("please specify parameter N_MATSUBARA for # of Matsubara frequencies to be measured");
   
@@ -175,8 +162,8 @@ void hybridization::show_info(const alps::params &parms, int crank){
     if(parms["MEASURE_sector_statistics"]) std::cout << "measuring sector statistics" << std::endl;
     if(parms["COMPUTE_VERTEX"]) std::cout << "vertex will be computed" << std::endl;
     if(parms["RET_INT_K"]) std::cout << "using retarded interaction" << std::endl;
-    if(parms["U_MATRIX"]) std::cout << "reading U matrix from file " << parms["U_MATRIX"] << std::endl;
-    if(parms["MU_VECTOR"]) std::cout << "reading MU vector from file " << parms["MU_VECTOR"] << std::endl;
+    if(parms.exists("U_MATRIX")) std::cout << "reading U matrix from file " << parms["U_MATRIX"] << std::endl;
+    if(parms.exists("MU_VECTOR")) std::cout << "reading MU vector from file " << parms["MU_VECTOR"] << std::endl;
     std::cout << "Simulation scheduled to run " << parms["MAX_TIME"] << " seconds" << std::endl << std::endl;
   }
   return;
@@ -223,7 +210,12 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<std::string>("BASEPATH","", "path in hdf5 file to which results are stored")
         .define<double>("BETA", "inverse temperature")
         .define<bool>("COMPUTE_VERTEX", false, "whether to compute the vertex functions or not.")
+        .define<std::string>("DELTA","path for hybridization function file")
+        .define<bool>("DELTA_IN_HDF5",false,"true if hybridization function file is in hdf5 format")
+        .define<bool>("DMFT_FRAMEWORK",false,"true if we need to tie into a dmft framework")
         .define<bool>("GLOBALFLIP", false, "TODO: UNDERSTAND WHAT THIS DOES.")
+        .define<double>("J",0,"interaction value for density-density Hund's coupling term J.")
+        .define<bool>("K_IN_HDF5",false,"set to true if retarded interaction K is stored in hdf5.")
         .define<int>("MAX_TIME", 60, "code runtime in seconds.")
         .define<std::string>("OUTPUT_FILE","out.h5", "file name to which results are stored")
         .define<bool>("MEASURE_freq",false, "measure in frequency domain")
@@ -234,28 +226,27 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<bool>("MEASURE_nnt",false, "measure density-density correlation functions <n(0) n(t)>")
         .define<bool>("MEASURE_nnw",false, "measure density-density correlation functions in frequency domain")
         .define<bool>("MEASURE_sector_statistics",false, "measure sector statistics")
-        .define<bool>("MEASURE_time",false, "measure in the time domain");
-/*
-"MEASURE_sector_statistics"
-"MEASURE_time"
-"MU_VECTOR"
-"NUM_BINS"
-"N_HISTOGRAM_ORDERS"
-"N_LEGENDRE"
-"N_MATSUBARA"
-"N_MEAS"
-"N_ORBITALS"
-"N_TAU"
-"N_W"
-"N_nn"
-"N_w2"
-"OUTPUT_PERIOD"
-"RET_INT_K"
-"SPINFLIP"
-"SWEEPS"
-"TEXT_OUTPUT"
-"THERMALIZATION"
-"TIMESERIES"
-"U_MATRIX"
-"VERBOSE"*/
+        .define<bool>("MEASURE_time",false, "measure in the time domain")
+        .define<double>("MU", "chemical potential / orbital energy values")
+        .define<std::string>("MU_VECTOR", "file name for file with chemical potential / orbital energy values")
+        .define<bool>("MU_IN_HDF5", false,"true if the file MU_VECTOR points to a hdf5 file")
+        .define<int >("N_HISTOGRAM_ORDERS",200, "orders for the histograms of probability per order")
+        .define<int >("N_LEGENDRE",0,"number of legendre coefficients")
+        .define<int >("N_MATSUBARA",0,"number of matsubara coefficients")
+        .define<int >("N_MEAS","number of updates per measurement")
+        .define<int >("N_ORBITALS","number of spin-orbitals (sometimes called flavors)")
+        .define<int >("N_TAU","number of imaginary time discretization points")
+        .define<int >("N_W","number of bosonic Matsubara frequencies")
+        .define<int >("N_nn",0,"number of points for the measurement of the density density correlator")
+        .define<int >("N_w2","number of fermionic frequencies for the two-particle measurement")
+        .define<bool>("RET_INT_K",false,"set to true for using retarded interactions")
+        .define<bool>("SPINFLIP",false,"TODO: UNDERSTAND THIS PARAMETER")
+        .define<int>("SWEEPS","total number of Monte Carlo sweeps to be done")
+        .define<bool>("TEXT_OUTPUT","if this is enabled, we write text files in addition to hdf5 files")
+        .define<int>("THERMALIZATION","thermalization steps")
+        .define<double>("U","interaction value. Only specify if you are not reading an U matrix")
+        .define<double>("Uprime",0,"interaction value Uprime. Only specify if you are not reading an U matrix")
+        .define<std::string>("U_MATRIX","file name for file that contains the interaction matrix")
+        .define<bool>("UMATRIX_IN_HDF5",false,"true if we store the U_matrix as /Umatrix in a hdf5 file")
+        .define<bool>("VERBOSE",true,"how verbose the code is. true = more output");
 }
