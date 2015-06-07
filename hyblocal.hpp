@@ -29,7 +29,7 @@
 #ifndef LOCAL_CONFIG_HPP
 #define LOCAL_CONFIG_HPP
 
-#include<alps/ngs/params.hpp>
+#include<alps/params.hpp>
 #include"hybint.hpp"
 #include"hybretintfun.hpp"
 #include"hybsegment.hpp"
