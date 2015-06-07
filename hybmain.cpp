@@ -27,60 +27,61 @@
  *
  *****************************************************************************/
 
+#include <ctime>
 #include "hyb.hpp"
 #include "hybevaluate.hpp"
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <alps/mc/parseargs.hpp>
 #ifdef ALPS_HAVE_MPI
 #include <alps/mc/mpiadapter.hpp>
+
 typedef alps::mcmpiadapter<hybridization> sim_type;
 #else
 typedef hybridization sim_type;
 #endif
 
 //stops the simulation if time > end_time or if signals received.
-bool stop_callback(boost::posix_time::ptime const & end_time) {
+bool stop_callback(const time_t end_time) {
   static alps::signal signal;
-  return !signal.empty() || boost::posix_time::second_clock::local_time() > end_time;
+  return !signal.empty() || time(0) > end_time;
 }
-void master_final_tasks(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, const std::string &output_name);
+void master_final_tasks(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parameters, const std::string &output_name);
 int global_mpi_rank;
 
-int main(int argc, char** argv){
-  //read in command line options
-  alps::parseargs options(argc, argv);
-  std::string output_file = options.output_file;
+int main(int argc, char* argv[]){
 
 #ifdef ALPS_HAVE_MPI
     //boot up MPI environment
     boost::mpi::environment env(argc, argv);
 #endif
+  
+  //read in command line options
+  alps::parameters_type<hybridization>::type parameters(argc, (const char**)argv, "/parameters");
+  hybridization::define_parameters(parameters);
+  if (parameters.help_requested(std::cout)) {
+    exit(0);
+  }
 
-    //create ALPS parameters from hdf5 parameter file
-    alps::parameters_type<hybridization>::type parms(alps::hdf5::archive(options.input_file, alps::hdf5::archive::READ));
     try {
-      if(options.timelimit!=0)
-        throw std::invalid_argument("time limit is passed in the parameter file!");
-      if(!parms.defined("MAX_TIME")) throw std::runtime_error("parameter MAX_TIME is not defined. How long do you want to run the code for? (in seconds)");
+      int max_time=parameters["MAX_TIME"];
 
 #ifndef ALPS_HAVE_MPI
       global_mpi_rank=0;
-      sim_type s(parms,global_mpi_rank);
+      sim_type s(parameters,global_mpi_rank);
 #else
       boost::mpi::communicator c;
       c.barrier();
       global_mpi_rank=c.rank();
-      sim_type s(parms, c);
+      sim_type s(parameters, c);
 #endif
       //run the simulation
-      s.run(boost::bind(&stop_callback, boost::posix_time::second_clock::local_time() + boost::posix_time::seconds((int)parms["MAX_TIME"])));
+      s.run(boost::bind(&stop_callback, time(0)+max_time));
 
       //on the master: collect MC results and store them in file, then postprocess
       if (global_mpi_rank==0){
         alps::results_type<hybridization>::type results = collect_results(s);
-        std::string output_path = boost::lexical_cast<std::string>(parms["BASEPATH"])+"/simulation/results";
-        alps::save_results(results, parms, output_file, output_path); //"/simulation/results");
-        master_final_tasks(results, parms, output_file);
+        std::string output_path = parameters["BASEPATH"].as<std::string>()+std::string("/simulation/results");
+        alps::save_results(results, parameters, parameters["OUTPUT_FILE"], output_path); //"/simulation/results");
+        master_final_tasks(results, parameters, parameters["OUTPUT_FILE"]);
 #ifdef ALPS_HAVE_MPI
       } else{ //on any slave: send back results to master.
         collect_results(s);
@@ -102,19 +103,19 @@ int main(int argc, char** argv){
 
 
 void master_final_tasks(const alps::results_type<hybridization>::type &results,
-                        const alps::parameters_type<hybridization>::type &parms,
+                        const alps::parameters_type<hybridization>::type &parameters,
                         const std::string &output_name){
   //do some post processing: collect Green functions and write
   //them into hdf5 files; calls compute vertex at the very end
 
   alps::hdf5::archive solver_output(output_name, "a");
 
-  evaluate_basics(results,parms,solver_output);
-  evaluate_time(results,parms,solver_output);
-  evaluate_freq(results,parms,solver_output);
-  evaluate_legendre(results,parms,solver_output);
-  evaluate_nnt(results,parms,solver_output);
-  evaluate_nnw(results,parms,solver_output);
-  evaluate_sector_statistics(results,parms,solver_output);
-  evaluate_2p(results, parms, solver_output);
+  evaluate_basics(results,parameters,solver_output);
+  evaluate_time(results,parameters,solver_output);
+  evaluate_freq(results,parameters,solver_output);
+  evaluate_legendre(results,parameters,solver_output);
+  evaluate_nnt(results,parameters,solver_output);
+  evaluate_nnw(results,parameters,solver_output);
+  evaluate_sector_statistics(results,parameters,solver_output);
+  evaluate_2p(results, parameters, solver_output);
 }

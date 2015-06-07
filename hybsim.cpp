@@ -31,6 +31,7 @@
 #endif
 
 #include <iomanip>
+#include <alps/params/convenience_params.hpp>
 #include"hyb.hpp"
 
 hybridization::hybridization(const alps::params &parms, int crank_)
@@ -204,4 +205,57 @@ double hybridization::fraction_completed()const{
   //return max of sweeps done and time used. Divide time used by the number of processes in pool (all work done will be added up)
   return std::max(work_fraction, time_fraction/csize);
   //return work_fraction;
+}
+
+void hybridization::define_parameters(parameters_type & parameters) {
+    // If the parameters are restored, they are already defined
+    if (parameters.is_restored()) {
+        return;
+    }
+    
+    // Adds the parameters of the base class
+    alps::mcbase::define_parameters(parameters);
+    // Adds the convenience parameters (for save/load)
+    // followed by the ising specific parameters
+    alps::define_convenience_parameters(parameters)
+        .description("hybridization expansion simulation")
+        .define<bool>("ACCURATE_COVARIANCE", false, "TODO: UNDERSTAND WHAT THIS DOES")
+        .define<std::string>("BASEPATH","", "path in hdf5 file to which results are stored")
+        .define<double>("BETA", "inverse temperature")
+        .define<bool>("COMPUTE_VERTEX", false, "whether to compute the vertex functions or not.")
+        .define<bool>("GLOBALFLIP", false, "TODO: UNDERSTAND WHAT THIS DOES.")
+        .define<int>("MAX_TIME", 60, "code runtime in seconds.")
+        .define<std::string>("OUTPUT_FILE","out.h5", "file name to which results are stored")
+        .define<bool>("MEASURE_freq",false, "measure in frequency domain")
+        .define<bool>("MEASURE_g2w",false, "measure two-particle Green's function in frequency space")
+        .define<bool>("MEASURE_h2w",false, "measure two-particle H Green's function in frequency space")
+        .define<bool>("MEASURE_legendre",false, "measure legendre Green's function coefficients")
+        .define<bool>("MEASURE_nn",false, "measure static density-density correlation functions")
+        .define<bool>("MEASURE_nnt",false, "measure density-density correlation functions <n(0) n(t)>")
+        .define<bool>("MEASURE_nnw",false, "measure density-density correlation functions in frequency domain")
+        .define<bool>("MEASURE_sector_statistics",false, "measure sector statistics")
+        .define<bool>("MEASURE_time",false, "measure in the time domain");
+/*
+"MEASURE_sector_statistics"
+"MEASURE_time"
+"MU_VECTOR"
+"NUM_BINS"
+"N_HISTOGRAM_ORDERS"
+"N_LEGENDRE"
+"N_MATSUBARA"
+"N_MEAS"
+"N_ORBITALS"
+"N_TAU"
+"N_W"
+"N_nn"
+"N_w2"
+"OUTPUT_PERIOD"
+"RET_INT_K"
+"SPINFLIP"
+"SWEEPS"
+"TEXT_OUTPUT"
+"THERMALIZATION"
+"TIMESERIES"
+"U_MATRIX"
+"VERBOSE"*/
 }

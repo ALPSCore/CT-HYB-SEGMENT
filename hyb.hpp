@@ -59,6 +59,7 @@ public:
   void update();
   bool is_thermalized() const { return (sweeps >= thermalization_sweeps); }
   double fraction_completed() const;
+  static void define_parameters(alps::params &parms);
   friend std::ostream &operator<<(std::ostream &os, const hybridization &hyb);
 
 private:
