@@ -1,8 +1,7 @@
+cmake_minimum_required (VERSION 2.8.12)
 # Not strictly necessary, but will create executables that are
 # aware of ALPSCore location
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-cmake_minimum_required (VERSION 2.8.12)
 
 project(alps-hybridization)
 
@@ -11,9 +10,7 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Request the ALPSCore package:
-#find_package(ALPSCore)
-# (optionally, components can be also listed, like this:) 
-find_package(ALPSCore COMPONENTS accumulators params)
+find_package(ALPSCore COMPONENTS accumulators params mc hdf5)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
@@ -34,9 +31,9 @@ set (QMC_HYBRIDIZATION_SOURCE
    hybmeasurements.cpp)
 add_library(alps_hyb_exp STATIC ${QMC_HYBRIDIZATION_SOURCE})
 target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES})
+set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # fixme
-#add_executable(hybridization hybmain.cpp ${QMC_HYBRIDIZATION_SOURCE})
+#add_executable(hybridization hybmain.cpp)
+#target_link_libraries(hybridization alps_hyb_exp ${ALPSCore_LIBRARIES})
 
-# Use ALPSCore_LIBRARIES variable to link to ALPSCore 
-#target_link_libraries(hybridization ${ALPSCore_LIBRARIES})
