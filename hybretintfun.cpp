@@ -52,15 +52,15 @@ void ret_int_fun::interaction_K_function_sanity_check(void){
 for(std::size_t i=0; i<ntime();++i)
   for(std::size_t j=0; j<nflavor();++j)
     if(operator()(i,j) < 0. && j==0) throw std::invalid_argument("Problem with retarded interaction function: RET_INT_K(\\tau) < 0. K should always be positive!");
-if(operator()(0,0)!=0.) throw std::invalid_argument("Problem with retarded interaction function: RET_INT_K(\\tau=0) must be zero.");
 }
 
 //this routine reads in the retarded interaction function, either from a text file or from an hdf5 file (for easy passing of binary data).
 //In  case of text files the file format is index - hyb_1 - hyb2 - hyb3 - ... in columns that go from time=0 to time=beta. Note that
 //the retarded interaction function is in imaginary time and always positive both for negative and positive times. It is also symmetric.
 void ret_int_fun::read_interaction_K_function(const alps::params &p){
-  std::string fname=p["RET_INT_K"].as<std::string>();
-  if(p["K_IN_HDF5"]){//attempt to read from h5 archive
+  if(!p.defined("RET_INT_K")) throw(std::invalid_argument(std::string("Parameter RET_INT_K missing, filename for retarded interaction function not specified.")));
+  std::string fname=p["RET_INT_K"];
+  if(p.defined("K_IN_HDF5") && p["K_IN_HDF5"]){//attempt to read from h5 archive
     alps::hdf5::archive ar(fname, alps::hdf5::archive::READ);
     std::vector<double> tmp(ntime());
     ar>>alps::make_pvp("/Ret_int_K",tmp);

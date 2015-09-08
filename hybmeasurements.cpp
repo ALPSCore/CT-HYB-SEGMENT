@@ -31,8 +31,6 @@
 #include"hyb.hpp"
 #include"alps/numeric/vector_functions.hpp"
 
-using namespace alps::numeric;
-
 // MOVE to alpscore
 template<typename T, typename T2>
 std::vector<T> operator / (std::vector<T> lhs, T2 x) {
@@ -59,20 +57,22 @@ typedef alps::accumulators::FullBinningAccumulator<std::vector<double> > vec_obs
 typedef alps::accumulators::FullBinningAccumulator<double> obs_t;
 typedef alps::accumulators::MeanAccumulator<std::vector<double> > simple_vec_t;
 
+//using namespace alps::numeric;
+//typedef alps::accumulators::RealVectorObservable vec_obs_t;
+//typedef alps::accumulators::RealVectorObservable vec_obs_t;
+//typedef alps::accumulators::RealObservable obs_t;
+
 void hybridization::create_measurements(){//called once in the constructor
 
   //basic measurements for all orbitals
   measurements<< vec_obs_t("order_histogram_total");
   measurements<< vec_obs_t("sector_statistics");
   measurements<< obs_t("Sign");
-  
+
   g2wr_names.resize(n_orbitals); g2wi_names.resize(n_orbitals);
   h2wr_names.resize(n_orbitals); h2wi_names.resize(n_orbitals);
   g2wr.resize(n_orbitals); g2wi.resize(n_orbitals);
   h2wr.resize(n_orbitals); h2wi.resize(n_orbitals);
-
-  G2w.resize(n_orbitals, std::vector<std::complex<double> >()); //resized conditionally
-  F2w.resize(n_orbitals, std::vector<std::complex<double> >()); //below
 
   if(MEASURE_g2w){
     g2wr.resize(N_w2*N_w2*N_W, 0.);
@@ -94,8 +94,6 @@ void hybridization::create_measurements(){//called once in the constructor
   for(std::size_t i=0;i<n_orbitals;++i){
     //g in tau
     std::stringstream g_name; g_name<<"g_"<<i; g_names.push_back(g_name.str());
-    //f in tau
-    std::stringstream f_name; f_name<<"f_"<<i; f_names.push_back(f_name.str());
 
     //density
     std::stringstream density_name; density_name<<"density_"<<i; density_names.push_back(density_name.str());
@@ -119,12 +117,8 @@ void hybridization::create_measurements(){//called once in the constructor
     nnw_re[i].resize(i+1);
     nn[i].resize(i);
 
-    if(MEASURE_g2w || MEASURE_h2w) G2w[i].resize(N_w_aux*N_w_aux);
-    if(MEASURE_h2w) F2w[i].resize(N_w_aux*N_w_aux);
-
     //initialize measurements for observable names
     measurements << vec_obs_t(g_name.str());
-    measurements << vec_obs_t(f_name.str());
     measurements << obs_t(density_name.str());
 
     measurements << vec_obs_t(order_histogram_name.str());
@@ -159,54 +153,40 @@ void hybridization::create_measurements(){//called once in the constructor
       if(MEASURE_g2w){    //the two-particle Green's function is large and error is usually not needed -> declare as simple observable
         std::stringstream g2wr_name; g2wr_name<<"g2w_re_"<<i<<"_"<<j; g2wr_names[i].push_back(g2wr_name.str());
         std::stringstream g2wi_name; g2wi_name<<"g2w_im_"<<i<<"_"<<j; g2wi_names[i].push_back(g2wi_name.str());
-#ifdef ALPS_NGS_USE_NEW_ALEA
-        measurements << alps::accumulator::SimpleRealVectorObservable(g2wr_name.str());
-        measurements << alps::accumulator::SimpleRealVectorObservable(g2wi_name.str());
-#else
         measurements << simple_vec_t(g2wr_name.str());
         measurements << simple_vec_t(g2wi_name.str());
-#endif
       }
       if(MEASURE_h2w){
         std::stringstream h2wr_name; h2wr_name<<"h2w_re_"<<i<<"_"<<j; h2wr_names[i].push_back(h2wr_name.str());
         std::stringstream h2wi_name; h2wi_name<<"h2w_im_"<<i<<"_"<<j; h2wi_names[i].push_back(h2wi_name.str());
-#ifdef ALPS_NGS_USE_NEW_ALEA
-        measurements << alps::accumulator::SimpleRealVectorObservable(h2wr_name.str());
-        measurements << alps::accumulator::SimpleRealVectorObservable(h2wi_name.str());
-#else
         measurements << simple_vec_t(h2wr_name.str());
         measurements << simple_vec_t(h2wi_name.str());
-#endif
       }
     }
   }
-  measurements.reset(); // before : was reset(true)
-
+  measurements.reset();
+  meas_count=0;
   //initialize measurement vectors
   sgn=0.;
   order_histogram.resize(n_orbitals, std::vector<double> (N_hist_orders, 0.));
   orders.resize(n_orbitals, 0.);
   order_histogram_total.resize(N_hist_orders, 0.);
+  G.resize(n_orbitals, std::vector<double>(N_t+1, 0.));
   densities.resize(n_orbitals, 0.);
-  sector_statistics.resize(1<<n_orbitals, 0.);
-
-  if(MEASURE_time){
-    G.resize(n_orbitals, std::vector<double>(N_t+1, 0.));
-    F.resize(n_orbitals, std::vector<double>(N_t+1, 0.));
-  }
+  sector_statistics.resize(pow(2,n_orbitals), 0.);
   if(MEASURE_freq){
     Gwr.resize(n_orbitals, std::vector<double>(N_w, 0.));
     Gwi.resize(n_orbitals, std::vector<double>(N_w, 0.));
     Fwr.resize(n_orbitals, std::vector<double>(N_w, 0.));
     Fwi.resize(n_orbitals, std::vector<double>(N_w, 0.));
-  }
-  if(MEASURE_legendre){
+ }
+ if(MEASURE_legendre){
     Gl.resize(n_orbitals, std::vector<double>(N_l, 0.));
     Fl.resize(n_orbitals, std::vector<double>(N_l, 0.));
   }
+  if(MEASURE_g2w) G2w.resize(n_orbitals, std::vector<std::complex<double> >(N_w_aux*N_w_aux));
+  if(MEASURE_h2w) F2w.resize(n_orbitals, std::vector<std::complex<double> >(N_w_aux*N_w_aux));
   if(MEASURE_nnt) n_vectors.resize(n_orbitals, std::vector<double>(N_nn+1, 0.));
-
-  F_prefactor.resize(n_orbitals);
 
 }// create measurements
 
@@ -215,10 +195,11 @@ void hybridization::measure(){
   if(!is_thermalized()) return;
 
   accumulate_order();
-
   accumulate_G();
+  meas_count=0; //reset
 
-  if(!MEASURE_time && (MEASURE_freq || MEASURE_legendre || MEASURE_h2w))//F_prefactor is computed in update() if time measurement is turned on
+  std::vector<std::map<double,double> > F_prefactor;
+  if(MEASURE_freq || MEASURE_legendre || MEASURE_g2w || MEASURE_h2w)
     local_config.get_F_prefactor(F_prefactor);//compute segment overlaps in local config
 
   measure_Gw(F_prefactor);
@@ -242,13 +223,11 @@ void hybridization::measure(){
 
   if(MEASURE_g2w  || MEASURE_h2w) measure_G2w(F_prefactor); //accumulated during measurement to save memory
 
-  sweep_count = sweeps;
 }
 
 void hybridization::measure_order(){
   //compute the order and store it in the vectors for the histograms
   sgn+=sign;
-  local_config.measure_density(densities, sign);
   for(std::size_t i=0;i<n_orbitals;++i){
     double order=local_config.order(i);
     orders[i]+=order;
@@ -260,33 +239,30 @@ void hybridization::measure_order(){
 }
 
 void hybridization::accumulate_order(){
-  measurements["order_histogram_total"]<<(order_histogram_total/N_meas);
+  measurements["order_histogram_total"]<<(order_histogram_total/(double)meas_count);
   memset(&(order_histogram_total[0]), 0, sizeof(double)*order_histogram_total.size());
-  measurements["Sign"]<<(sgn/N_meas); sgn=0.;
+  measurements["Sign"]<<(sgn/(double)meas_count); sgn=0.;
   for(std::size_t i=0;i<n_orbitals;++i){
-    measurements[order_names[i]]<<(orders[i]/N_meas);
-    measurements[density_names[i]]<<(densities[i]/N_meas);
-    measurements[order_histogram_names[i]]<<(order_histogram[i]/N_meas);
+    measurements[order_names[i]]<<(orders[i]/(double)meas_count);
+    measurements[order_histogram_names[i]]<<(order_histogram[i]/(double)meas_count);
     orders[i]=0.;
-    densities[i]=0;
     memset(&(order_histogram[i][0]), 0, sizeof(double)*order_histogram[i].size());
   }
 }
 
 //measure the Green's function
-void hybridization::measure_G(std::vector<std::map<double,double> > &F_prefactor){
-  if(!MEASURE_time) return;
-  //delegate the actual measurement to the hybridization configuration
-  hyb_config.measure_G(G, F, F_prefactor, sign);
+void hybridization::measure_G(){
+  //delegate the acutal measurement to the hybridization configuration
+  hyb_config.measure_G(G, sign);
+  local_config.measure_density(densities, sign);
 }
 
 void hybridization::accumulate_G(){
-  if(!MEASURE_time) return;
   for(std::size_t i=0;i<n_orbitals;++i){
-    measurements[g_names[i]]<<(N_t*G[i]/(beta*beta*N_meas));
-    measurements[f_names[i]]<<(N_t*F[i]/(beta*beta*N_meas));
+    measurements[g_names[i]]<<(N_t*G[i]/(beta*beta*meas_count));
+    measurements[density_names[i]]<<(densities[i]/(double)meas_count);
     memset(&(G[i][0]), 0, sizeof(double)*G[i].size());
-    memset(&(F[i][0]), 0, sizeof(double)*F[i].size());
+    densities[i]=0;
   }
 }
 
@@ -420,19 +396,11 @@ void hybridization::measure_G2w(std::vector<std::map<double,double> > &F_prefact
               g2wi[index] += meas.imag();
             }
             if(MEASURE_h2w){
-              //std::cout<<i<<" "<<j<<" "<<w2n<<" "<<w3n<<" "<<Wn<<" "<<std::endl;
-              //std::cout<<"G: "<<G2w[j][w3n*N_w_aux+w4n]<<" size: "<< G2w[j].size()<<" index: "<<w3n*N_w_aux+w4n<<std::endl;
-              //std::cout<<"F: "<<F2w[i][w1n*N_w_aux+w2n]<<" size: "<< F2w[i].size()<<" index: "<<w1n*N_w_aux+w2n<<std::endl;
-              //std::cout<<"done G and F"<<std::endl;
               std::complex<double> meas_h =F2w[i][w1n*N_w_aux+w2n]*G2w[j][w3n*N_w_aux+w4n]; // n1M12M34
               if(i==j)             meas_h-=F2w[i][w1n*N_w_aux+w4n]*G2w[i][w3n*N_w_aux+w2n]; //-n1M14M32
               meas_h/=beta; meas_h*=sign;
-              if(i >= F2w.size() || j >= G2w.size()) throw std::logic_error("size is too large!");
-              if(w1n*N_w_aux+w2n>= F2w[i].size() || w3n*N_w_aux+w4n>=G2w[j].size()) throw std::logic_error("size 2 is too large");
-              //if(isinf(meas_h.real()) || isinf(meas_h.imag()) || isnan(meas_h.real()) || isnan(meas_h.imag())) throw std::runtime_error("inf or nan in measuring of h");
               h2wr[index] += meas_h.real();
               h2wi[index] += meas_h.imag();
-              //std::cout<<i<<" "<<j<<" "<<w2n<<" "<<w3n<<" "<<Wn<<" done."<<std::endl;
             }
           }//Wn
       if(MEASURE_g2w){

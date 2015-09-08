@@ -36,21 +36,7 @@ hybridization_configuration::hybridization_configuration(const alps::params &p):
 
 void hybridization_configuration::dump() {
     for (int i=0;i<hybmat_.size();i++)
-        std::cerr << "Weight for orbital " << i << " : " << hybmat_[i].full_weight() << std::endl;
-}
-
-void hybridization_configuration::rebuild() {
-  for (int i=0;i<hybmat_.size();i++)
-    hybmat_[i].rebuild_hyb_matrix(i,Delta);
-}
-
-void hybridization_configuration::rebuild(int orbital) {
-  hybmat_[orbital].rebuild_hyb_matrix(orbital,Delta);
-}
-
-void hybridization_configuration::rebuild(std::vector<int> orbital) {
-  for (int i=0;i<orbital.size();i++)
-    hybmat_[orbital[i]].rebuild_hyb_matrix(orbital[i],Delta);
+        std::cout << "Weight for orbital " << i << " : " << hybmat_[i].full_weight() << std::endl;
 }
 
 double hybridization_configuration::hyb_weight_change_insert(const segment &new_segment, int orbital){
@@ -89,9 +75,9 @@ void hybridization_configuration::insert_antisegment(const segment &new_antisegm
   //hybmat_[orbital].rebuild_hyb_matrix(orbital, Delta);
   //std::cout<<clmagenta<<"done after as insert recompute "<<cblack<<std::endl;
 }
-void hybridization_configuration::measure_G(std::vector<std::vector<double> > &G, std::vector<std::vector<double> > &F, const std::vector<std::map<double,double> > &F_prefactor, double sign) const{
+void hybridization_configuration::measure_G(std::vector<std::vector<double> > &G, double sign) const{
   for(std::size_t orbital=0;orbital<hybmat_.size();++orbital){
-    hybmat_[orbital].measure_G(G[orbital], F[orbital], F_prefactor[orbital], sign);
+    hybmat_[orbital].measure_G(G[orbital], sign);
   }
 }
 void hybridization_configuration::measure_Gw(std::vector<std::vector<double> > &Gwr, std::vector<std::vector<double> > &Gwi, std::vector<std::vector<double> > &Fwr, std::vector<std::vector<double> > &Fwi, const std::vector<std::map<double,double> > &F_prefactor, double sign) const{
@@ -109,13 +95,8 @@ void hybridization_configuration::measure_Gl(std::vector<std::vector<double> > &
     hybmat_[orbital].measure_Gl(Gl[orbital], Fl[orbital], F_prefactor[orbital], sign);
   }
 }
-double hybridization_configuration::full_weight() const{
-  double weight=1.;
-  for(std::size_t orbital=0;orbital<hybmat_.size();++orbital){
-    weight*=hybmat_[orbital].full_weight();
-  }
-  return weight;
-}
+
+
 std::ostream &operator<<(std::ostream &os, const hybridization_configuration &hyb_config){
   for(std::size_t i=0;i<hyb_config.hybmat_.size();++i){
     os<<cblue<<"------- "<<"orbital: "<<i<<" ------"<<cblack<<std::endl;

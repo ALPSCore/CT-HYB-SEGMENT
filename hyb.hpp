@@ -28,24 +28,24 @@
 #ifndef HYB_HPP
 #define HYB_HPP
 
-//#include <alps/ngs.hpp>
 #include <alps/mc/mcbase.hpp>
 #include <alps/utilities/signal.hpp>
 #include "green_function.h"
 #include "hybsegment.hpp"
 #include "hyblocal.hpp"
 #include "hybconfig.hpp"
-#include "boost/chrono/chrono.hpp"
+
 
 #ifdef HYB_SIM_MAIN
-boost::uint64_t sweep_count;
-std::vector<boost::uint64_t> nacc,nprop;
+std::vector<uint64_t> nacc,nprop;
+uint64_t nsweeps;
 std::vector<std::string> update_type;
 #else
-extern boost::uint64_t sweep_count;
-extern std::vector<boost::uint64_t> nacc,nprop;
+extern std::vector<uint64_t> nacc,nprop;
+extern uint64_t nsweeps;
 extern std::vector<std::string> update_type;
 #endif
+
 
 class hybridization:public alps::mcbase
 {
@@ -57,23 +57,20 @@ public:
   //Monte Carlo update and measurements functions
   void measure();
   void update();
-  bool is_thermalized() const { return (sweeps >= thermalization_sweeps); }
-  double fraction_completed() const;
+  double fraction_completed() const {return std::max((sweeps-thermalization_sweeps)/(double)total_sweeps,0.);}
   static void define_parameters(alps::params &parms);
   friend std::ostream &operator<<(std::ostream &os, const hybridization &hyb);
 
 private:
+//  std::vector<uint64_t> nacc,nprop;
+//  std::vector<std::string> update_type;
   bool VERBOSE;
   int crank;
-  int csize;
-  clock_t start_time;
-  clock_t end_time;
-
   //initialize all measurements and measurement vectors (with 0)
   void create_measurements();
   //measure_* functions perform the actual measurements
   void measure_order();
-  void measure_G(std::vector<std::map<double,double> > &F_prefactor);
+  void measure_G();
   void measure_Gw(std::vector<std::map<double,double> > &F_prefactor);
   void measure_Gl(std::vector<std::map<double,double> > &F_prefactor);
   void measure_G2w(std::vector<std::map<double,double> > &F_prefactor);
@@ -92,9 +89,10 @@ private:
   void accumulate_nnw();
   void accumulate_sector_statistics();
 
+  bool is_thermalized() const { return (sweeps >= thermalization_sweeps); }
+
   //Monte Carlo update routines
   void change_zero_order_state_update();
-  void global_flip_update();
   void shift_segment_update();
   void insert_remove_segment_update();
   void insert_remove_antisegment_update();
@@ -106,14 +104,11 @@ private:
   void insert_antisegment_update(int orbital);
   void remove_antisegment_update(int orbital);
   void spin_flip_update(int orbital);
-  
-  //programming and debug functions
-  double full_weight() const;
 
   //algorithm parameters
-  boost::uint64_t sweeps;
-  boost::uint64_t thermalization_sweeps;
-  boost::uint64_t total_sweeps;
+  uint64_t sweeps;
+  uint64_t thermalization_sweeps;
+  uint64_t total_sweeps;
   std::size_t n_orbitals;
   double sign;
 
@@ -122,7 +117,7 @@ private:
 
   //updates parameters
   std::size_t N_meas;
-  
+
   //measurement parameters
   std::size_t N_w;    //number of Matsubara frequency points
   std::size_t N_l;    //number of Legendre coefficients
@@ -132,20 +127,18 @@ private:
   std::size_t N_w_aux;//number of Matsubara frequency points for the measurment of M(w1,w2)
   std::size_t N_hist_orders;
   std::size_t N_nn;
-  bool spin_flip,global_flip;
+  bool spin_flip;
   bool MEASURE_nnt;
   bool MEASURE_nnw;
   bool MEASURE_nn;
   bool MEASURE_g2w;
   bool MEASURE_h2w;
-  bool MEASURE_time;
   bool MEASURE_freq;
   bool MEASURE_legendre;
   bool MEASURE_sector_statistics;
 
   //observable names
   std::vector<std::string> g_names;
-  std::vector<std::string> f_names;
   std::vector<std::string> density_names;
   std::vector<std::string> order_names;
   std::vector<std::string> order_histogram_names;
@@ -160,7 +153,6 @@ private:
   std::vector<double>orders;
   std::vector<double>order_histogram_total;
   std::vector<std::vector<double> >G;
-  std::vector<std::vector<double> >F;
   std::vector<double>densities;
   std::vector<std::vector<double> >Gwr;
   std::vector<std::vector<double> >Gwi;
@@ -180,7 +172,7 @@ private:
   std::vector<double>h2wr;
   std::vector<double>h2wi;
 
-  std::vector<std::map<double,double> > F_prefactor;
+  uint64_t meas_count;
 
   //local impurity operator configuration
   local_configuration local_config;

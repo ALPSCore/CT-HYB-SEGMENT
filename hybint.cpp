@@ -33,11 +33,11 @@ interaction_matrix::interaction_matrix(const alps::params &p){
   extern int global_mpi_rank;
   n_orbitals_=p["N_ORBITALS"];
   val_.resize(n_orbitals_*n_orbitals_,0.);
-  //if the parameter U_MATRIX is exists: read in the U_MATRIX from file
-  if(p.exists("U_MATRIX")){
-    if(p.exists("U")){ throw std::invalid_argument("Redundant parameters: parameter U_MATRIX exists, as does parameter U. Specify one of them!");}
-    std::string ufilename=p["U_MATRIX"].as<std::string>();
-    if(p["UMATRIX_IN_HDF5"]){
+  //if the parameter U_MATRIX is defined: read in the U_MATRIX from file
+  if(p.defined("U_MATRIX")){
+    if(p.defined("U") && !global_mpi_rank){ std::cout << "Warning::parameter U_MATRIX defined, ignoring parameter U" << std::flush << std::endl; };
+    std::string ufilename=p["U_MATRIX"];
+    if(p.defined("UMATRIX_IN_HDF5") && p["UMATRIX_IN_HDF5"]){//attempt to read from h5 archive
       alps::hdf5::archive ar(ufilename, alps::hdf5::archive::READ);
       ar>>alps::make_pvp("/Umatrix",val_);
     }
@@ -67,17 +67,6 @@ void interaction_matrix::apply_shift(const double shift){
 }
 
 void interaction_matrix::assemble(const double U, const double Uprime, const double J){
-  if(Uprime==U && J==0){
-     for(int i=0;i<n_orbitals_;++i){
-       for(int j=0;j<n_orbitals_;++j){
-         operator()(i,j)=(i==j)?0:U;
-       }
-     }
-   }else{
-  if(n_orbitals_%2!=0){
-    std::cerr<<"n_orbitals is: "<<n_orbitals_<<std::endl;
-    throw std::logic_error("extend assemble or write interaction matrix to file for odd # orbitals");
-  }
   for(int i=0;i<n_orbitals_;i+=2){
     operator()(i  , i  ) = 0; //Pauli
     operator()(i+1, i+1) = 0; //Pauli
@@ -92,7 +81,6 @@ void interaction_matrix::assemble(const double U, const double Uprime, const dou
       operator()(i+1,j  ) = Uprime; //Hubbard repulsion interband opposite spin
     }
   }
-}
 } 
 
 std::ostream &operator<<(std::ostream &os, const interaction_matrix &U){

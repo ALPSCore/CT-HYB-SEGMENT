@@ -41,27 +41,6 @@ typedef std::map<double,std::size_t> hyb_map_t;
 class hybmatrix:public blas_matrix{
 public:
   hybmatrix(const alps::params &p){ determinant_=1.; determinant_old_=1.; permutation_sign_=1.; beta_=p["BETA"]; measure_g2w_=p["MEASURE_g2w"]; measure_h2w_=p["MEASURE_h2w"]; }
-  hybmatrix(const hybmatrix &rhs) 
-      :blas_matrix(rhs)
-      ,cdagger_index_map_(rhs.cdagger_index_map_)
-      ,c_index_map_(rhs.c_index_map_)
-      ,Q(rhs.Q)
-      ,R(rhs.R)
-      ,PinvQ(rhs.PinvQ)
-      ,S(rhs.S)
-      ,S_tilde_inv(rhs.S_tilde_inv)
-      ,S_tilde(rhs.S_tilde)
-      ,weight_ratio_(rhs.weight_ratio_)
-      ,permutation_sign_(rhs.permutation_sign_)
-      ,determinant_(rhs.determinant_)
-      ,determinant_old_(rhs.determinant_old_)
-      ,beta_(rhs.beta_)
-      ,measure_g2w_(rhs.measure_g2w_)
-      ,measure_h2w_(rhs.measure_h2w_)
-  {}
-  ~hybmatrix() {
-//    std::cerr << "Deleting hybmatrix\n";
-  }
   double hyb_weight_change_insert(const segment &new_segment, int orbital, const hybfun &Delta);
   double hyb_weight_change_remove(const segment &new_segment, int orbital, const hybfun &Delta);
   void insert_segment(const segment &new_segment, int orbital);
@@ -70,9 +49,8 @@ public:
   void rebuild_hyb_matrix(int orbital, const hybfun &Delta);
   void rebuild_ordered_hyb_matrix(int orbital, const hybfun &Delta);
   double full_weight() const;
-  void measure_G(std::vector<double> &G, std::vector<double> &F, const std::map<double,double> &F_prefactor, double sign) const;
+  void measure_G(std::vector<double> &G, double sign) const;
   void measure_Gw(std::vector<double> &Gwr, std::vector<double> &Gwi,std::vector<double> &Fwr, std::vector<double> &Fwi, const std::map<double,double> &F_prefactor, double sign) const;
-  void measure_Gw_buffer(std::vector<double> &Gwr, std::vector<double> &Gwi,std::vector<double> &Fwr, std::vector<double> &Fwi, const std::map<double,double> &F_prefactor, double sign) const;
   void measure_G2w(std::vector<std::complex<double> > &G2w, std::vector<std::complex<double> >&F2w, int N_w2, int N_w_aux, const std::map<double,double> &F_prefactor) const;
   void measure_Gl(std::vector<double> &Gl, std::vector<double> &Fl, const std::map<double,double> &F_prefactor, double sign) const;
   void consistency_check() const;

@@ -111,7 +111,7 @@ void master_final_tasks(const alps::results_type<hybridization>::type &results,
   alps::hdf5::archive solver_output(output_name, "a");
 
   evaluate_basics(results,parameters,solver_output);
-  evaluate_time(results,parameters,solver_output);
+  evaluate_gtau(results,parameters,solver_output);
   evaluate_freq(results,parameters,solver_output);
   evaluate_legendre(results,parameters,solver_output);
   evaluate_nnt(results,parameters,solver_output);

@@ -44,8 +44,8 @@ typedef std::map<double,int> state_map;
 
 typedef class local_configuration{
 public:
-  local_configuration(const alps::params &p, int crank);
-  double local_energy(const segment &seg, int orb,bool d_mu_only=false) const;
+  local_configuration(const alps::params &p);
+  
   double local_weight_change(const segment &seg, int orb, bool antisegment) const;
   int order(int orbital) const{ return segments_[orbital].size(); }
   int n_orbitals() const{ return n_orbitals_; }
@@ -59,7 +59,7 @@ public:
   void remove_antisegment(const segment &new_segment, int orbital);
   segment get_segment(int k, int orbital) const;
   bool exists(double t) const{ return times_set_.find(t)==times_set_.end()?false:true;}
-  bool has_overlap(const segment &seg,const int orb);
+  void check_consistency() const;
   void get_segment_densities(std::vector<std::vector<std::vector<double> > > &n_tauprime)const;
   void get_F_prefactor(std::vector<std::map<double,double> > &F_prefactor)const;
   void measure_density(std::vector<double> &densities, double sign) const;
@@ -67,23 +67,19 @@ public:
   double measure_nn(int i, int j) const;
   void measure_nnw(int i, std::vector<double> &nnw, double sign) const;
   void get_density_vectors(std::vector<std::vector<double> > &n_vector) const;
+//  double get_F_prefactor_debug(int f1,int orbital,double cdagger_times_i) const;
+//  double get_occupation(int f1,double tau_1) const;
   double density(int i, double tau) const;
   double mu(int orbital) {return mu_[orbital];}
-  double interaction_density_integral(std::set<segment>::const_iterator &it) const;
+  double interaction_density_integral(int i, double tau) const;
   void state_map_segment_insert(state_map &states, const segment &s, int state) const;
   void measure_sector_statistics(std::vector<double> &sector_statistics, double sign) const;
   friend std::ostream &operator<<(std::ostream &os, const local_configuration &local_conf);
-  
-  //debug functions
-  void check_consistency() const;
-  double full_weight() const;
-
 private:
   //private member functions
   double segment_overlap(const segment &seg1, const segment &seg2) const;
 
   //private variables
-  int crank_;
   interaction_matrix U_;
   chemical_potential mu_;
   ret_int_fun K_;

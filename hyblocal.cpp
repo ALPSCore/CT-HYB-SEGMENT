@@ -30,22 +30,20 @@
 #include"hyblocal.hpp"
 #include<algorithm>
 
-local_configuration::local_configuration(const alps::params &p, int crank):
-crank_(crank),
+local_configuration::local_configuration(const alps::params &p):
 U_(p),
 mu_(p),
 K_(p){
   beta_=p["BETA"];
   n_orbitals_=p["N_ORBITALS"];
-//    std::cerr << "Start ...";
   segments_.resize(n_orbitals_);
   zero_order_orbital_occupied_.resize(n_orbitals_,false);
-//    std::cerr << " done\n";
-  use_retarded_interaction_=p["RET_INT_K"];
+  
+  use_retarded_interaction_=p.defined("RET_INT_K");
   if(use_retarded_interaction_){
     double Kp0=K_.interpolate_deriv(0.0);//K'(0^+)
     U_.apply_shift(-2.*Kp0); //apply static shift caused by the retarded interaction
-    mu_.apply_shift(+Kp0);
+    mu_.apply_shift(-Kp0);
   }
   
   extern int global_mpi_rank;
@@ -132,22 +130,6 @@ double local_configuration::local_weight_change(const segment &seg, int orb, boo
   }
   return weight;
 }
-
-bool local_configuration::has_overlap(const segment &seg,const int orb) {
-//  bool overlap = false;
-  if(zero_order_orbital_occupied_[orb]){
-    return true;
-  } else {
-    //find the first segment with time t_start > seg.t_start
-    for(std::set<segment>::const_iterator it=segments_[orb].begin(); it !=
-        segments_[orb].end();++it) {
-      if (segment_overlap(seg, *it)>0.0) return true;
-    }
-  }
-  return false;
-}
-
-
 //this computes the overlap of two segments. It takes care of the wrapping around zero by splitting the segments up.
 double local_configuration::segment_overlap(const segment &seg1, const segment &seg2) const{
   if(seg1.t_start_>seg1.t_end_) return segment_overlap(segment(seg1.t_start_, beta_), seg2)+segment_overlap(segment(0, seg1.t_end_), seg2);
@@ -187,8 +169,8 @@ double local_configuration::find_next_segment_end_distance(double time, int orbi
 
 void local_configuration::insert_segment(const segment &new_segment, int orbital){
   segments_[orbital].insert(new_segment);
-  if(!times_set_.insert(new_segment.t_start_).second){std::stringstream s; s<<crank_; throw std::logic_error("rank "+s.str()+": insert segment start time could not be inserted.");}
-  if(!times_set_.insert(new_segment.t_end_).second){std::stringstream s; s<<crank_; std::cout<<*this<<std::endl; std::cout<<"inserted segment: "<<new_segment<<"into orbital: "<<orbital<<std::endl; throw std::logic_error("rank "+s.str()+": insert segment end time could not be inserted.");}
+  if(!times_set_.insert(new_segment.t_start_).second){throw std::logic_error("insert segment start time could not be inserted.");}
+  if(!times_set_.insert(new_segment.t_end_).second){throw std::logic_error("insert segment end time could not be inserted.");}
 }
 void local_configuration::insert_antisegment(const segment &new_antisegment, int orbital){
   //find segment of which this one is a part
@@ -208,8 +190,8 @@ void local_configuration::insert_antisegment(const segment &new_antisegment, int
     segments_[orbital].insert(new_later_segment);
     segments_[orbital].insert(new_earlier_segment);
   }
-  if(!times_set_.insert(new_antisegment.t_start_).second){std::stringstream s; s<<crank_; throw std::logic_error("rank "+s.str()+": insert antisegment start time could not be inserted.");}
-  if(!times_set_.insert(new_antisegment.t_end_).second){std::stringstream s; s<<crank_; throw std::logic_error("rank "+s.str()+": insert antisegment start time could not be inserted.");}
+  if(!times_set_.insert(new_antisegment.t_start_).second){throw std::logic_error("insert antisegment start time could not be inserted.");}
+  if(!times_set_.insert(new_antisegment.t_end_).second){throw std::logic_error("insert segment start time could not be inserted.");}
 }
 void local_configuration::remove_antisegment(const segment &new_antisegment, int orbital){
   //find segment of which this one is a part
@@ -276,57 +258,6 @@ void local_configuration::remove_segment(const segment &new_segment, int orbital
     std::cout<<*this<<std::endl;
     throw std::logic_error("did not find end time to remove!");
   }
-}
-//compute the segment overlap and segment length, and return the weight
-//this is an O(k n_orbital) procedure in the expansion order and the number or orbitals.
-double local_configuration::local_energy(const segment &seg, int orb,bool d_mu_only) const{
-    //the chemical potential term: just needs a segment length
-    double length=seg.t_end_-seg.t_start_;
-    if(length<0) length+=beta_; //wraparound segment
-    double energy = mu_[orb]*length;
-    if (d_mu_only) return energy;
-    //std::cout<<clmagenta<<"chemical potential weight is: "<<weight<<" mu: "<<mu_[orb]<<" length: "<<length<<cblack<<std::endl;
-    
-    //the interaction term needs the overlap between this orbital and all the other orbitals
-    static std::vector<double> overlaps(n_orbitals_, 0.);
-    for(int i=0;i<n_orbitals_;++i) overlaps[i]=0.;
-    for(int i=0;i<n_orbitals_;++i){
-        if(i==orb) continue;
-        
-        if(zero_order_orbital_occupied_[i]){
-            overlaps[i]=length;
-        }else{
-            //find the first segment with time t_start > seg.t_start
-            for(std::set<segment>::const_iterator it=segments_[i].begin(); it != segments_[i].end();++it){
-                overlaps[i]+=segment_overlap(seg, *it);
-            }
-        }
-        //std::cout<<clmagenta<<"weight of orbital: "<<orb<<" wrt orbital: "<<i<<" is: "<<std::exp(U_(orb,i)*overlaps[i])<<" for overlap: "<<overlaps[i]<<cblack<<std::endl;
-        energy -= U_(orb,i)*overlaps[i];
-        /*if(zero_order_orbital_occupied_[i]){
-         std::cout<<"weight got an additional factor:"<<std::exp(-sgn*U_(orb,i)*overlaps[i])<<std::endl;
-         }*/
-    }
-    //this is the retarded interaction stuff
-    if(use_retarded_interaction_){
-        bool is_removal=false;
-        double retarded_weight=0;
-        if((seg.t_start_==0) && (seg.t_end_==beta_)){ //not really a segment but a full line
-            retarded_weight=0.;
-        }else{
-            for(int i=0;i<n_orbitals_;++i){
-                for(std::set<segment>::const_iterator it=segments_[i].begin(); it != segments_[i].end();++it){
-                    retarded_weight+=K_.interpolate(seg.t_start_-it->t_start_);
-                    retarded_weight-=K_.interpolate(seg.t_start_-it->t_end_);
-                    retarded_weight-=K_.interpolate(seg.t_end_-it->t_start_);
-                    retarded_weight+=K_.interpolate(seg.t_end_-it->t_end_);
-                }
-            }
-            retarded_weight-=K_.interpolate(seg.t_end_-seg.t_start_);
-        }
-        energy += retarded_weight;
-    }
-    return energy;
 }
 void local_configuration::check_consistency()const {
   for(int i=0;i<n_orbitals_;++i){
@@ -455,17 +386,53 @@ double local_configuration::density(int i, double tauprime) const{//density on o
 }
 
 
-double local_configuration::interaction_density_integral(std::set<segment>::const_iterator &it_i) const{
-  //for orbital i, compute \sum_j int_0^beta dt U_ret(tau - t) n_j(t) using the primitive K'(tau) of U(tau)=K''(tau)
-  double integral=0.0; double sgn;
-  for(int j=0; j<n_orbitals_; ++j){
-    for(std::set<segment>::const_iterator it_j=segments_[j].begin(); it_j!=segments_[j].end();++it_j){
-      integral+= K_.interpolate_deriv(it_j->t_end_ - it_i->t_end_) - K_.interpolate_deriv(it_j->t_start_ - it_i->t_end_);
-    }
+double local_configuration::interaction_density_integral(int i, double tauprime) const{
+  //compute int_0^beta dt U_ret(tauprime - t) n_i(t)
+  //using the primitive K'(tau) of U(tau)=K''(tau)
+  double integral=0.0;
+  //  if(segments_[i].size()==0 && zero_order_orbital_occupied_[i]) integral=-2.*K_.interpolate_deriv(0.); //check this: this static contribution should already be
+  //accounted for by the renormalization of the static U
+  for(std::set<segment>::const_iterator it=segments_[i].begin(); it!=segments_[i].end();++it){
+    
+    //    if(it->t_end_<it->t_start_){//winding segment; we can do this more elegantly
+    //    contribution from a winding segment is an integral from t_start to t_end, which can be rewritten in terms of a static part
+    //    (already accounted for by the renormalization of U) and an integral from t_end to t_start with opposite sign; this is the
+    //    the same as an integral from t_start to t_end with the sign reversed; hence we need no special treatment of winding segments
+    /*
+     double tau_1 = 0.0-tauprime;
+     double tau_2 = it->t_end_-tauprime;
+     integral+=K_.interpolate_deriv(tau_1)-K_.interpolate_deriv(tau_2);
+     //tau_1>tau_2 for a regular segment
+     //      if(tau_2<0. && tau_1>=0.) integral-=2.*K_.interpolate_deriv(0.);//account for discontinuity in K' @ 0 (0 is 0^+)
+     
+     tau_1 = it->t_start_-tauprime;
+     tau_2 = beta_-tauprime;
+     integral+=K_.interpolate_deriv(tau_1)-K_.interpolate_deriv(tau_2);
+     //tau_1>tau_2 for a regular segment
+     //      if(tau_2<0. && tau_1>=0.) integral-=2.*K_.interpolate_deriv(0.);//account for discontinuity in K' @ 0 (0 is 0^+)
+     */
+    
+    //      double tau_1 = it->t_start_-tauprime;
+    //      double tau_2 = it->t_end_-tauprime;
+    //      integral+=K_.interpolate_deriv(tau_1)-K_.interpolate_deriv(tau_2);
+    //      integral-=2.*K_.interpolate_deriv(0.);//account for discontinuity in K' @ 0 (0 is 0^+)
+    
+    //    }
+    
+    //    else{
+    
+    integral+=K_.interpolate_deriv(it->t_end_-tauprime)-K_.interpolate_deriv(it->t_start_-tauprime);
+    
+    //      same same but different
+    //      double tau_1 = it->t_start_-tauprime;
+    //      double tau_2 = it->t_end_-tauprime;
+    //      integral-=K_.interpolate_deriv(tau_1)-K_.interpolate_deriv(tau_2);
+    
+    //      if(tau_2<0. && tau_1>=0.) integral-=2.*K_.interpolate_deriv(0.); //account for discontinuity in K' @ 0 (0 is 0^+)
+    //    }
   }
-  return integral-2*K_.interpolate_deriv(0.0); //this is the same segment, same time contribution due to the fact that n and c do not commute in this case
+  return integral;
 }
-
 
 //compute the prefactor that will go into the Green's function measurement using Fw
 //NOTE: from the equation of motion, we have the correlation function
@@ -484,17 +451,25 @@ double local_configuration::interaction_density_integral(std::set<segment>::cons
 //n is coupled the creator or annihilator. To save computations and memory, we
 //evaluate F_prefactor for annihilator times only, in favor of the correlator H.
 void local_configuration::get_F_prefactor(std::vector<std::map<double,double> > &F_prefactor)const{
-  for(std::size_t i=0; i<n_orbitals_; ++i) F_prefactor[i].clear();
-  //this is F_prefactor[orbital i][segment k in orbital i]
-  for(std::size_t i=0;i<n_orbitals_;++i){
+  //it is F_prefactor[orbital i][segment k in orbital i]
+  //  std::vector<std::vector<std::vector<double> > > n_tauprime;
+  //it is n_tauprime[orbital i][start time of segment k in orbital i][density
+  //at time \tau_k in orbital j]
+  //  get_segment_densities(n_tauprime);
+  F_prefactor.resize(n_orbitals_);
+  for(int i=0;i<n_orbitals_;++i){
     std::size_t k=0;
     for(std::set<segment>::const_iterator it=segments_[i].begin(); it!=segments_[i].end();++it,++k){
+      //      F_prefactor[i][it->t_start_] = 0;
       F_prefactor[i][it->t_end_] = 0;
-      for(std::size_t j=0; j<n_orbitals_; ++j){
+      for(int j=0; j<n_orbitals_; ++j){
+        if(use_retarded_interaction_){//also contribute for j==i
+          F_prefactor[i][it->t_end_] += interaction_density_integral(j,it->t_end_);//contribution is independent of i
+        }
+        //        F_prefactor[i][it->t_start_] += 0.5*(U_(i,j)+U_(j,i))*n_tauprime[i][k][j];
         F_prefactor[i][it->t_end_] += 0.5*(U_(i,j)+U_(j,i))*density(j,it->t_end_);
-      }
-      if(use_retarded_interaction_){//also contribute for j==i
-          F_prefactor[i][it->t_end_] += interaction_density_integral(it);
+        //*n_tauprime[i][k][j];
+        //std::cout<<clblue<<i<<" "<<it->t_start_<<" "<<j<<" "<<0.5*(U_(i,j)+U_(j,i))*n_tauprime[i][k][j]<<cblack<<std::endl;
       }
     }
   }
@@ -617,10 +592,7 @@ void local_configuration::measure_nnw(int i, std::vector<double> &nnw_re, double
 
 void local_configuration::state_map_segment_insert(state_map &states, const segment &s, int index) const{
   //works also for the case where an operator is inserted exactly at the point of an already present kink
-  if(s.t_end_<=s.t_start_){
-    std::cerr<<"logic error inside state_map_segment_insert." << s.t_start_ << " " << s.t_end_ <<std::endl;
-    throw std::runtime_error(std::string(__FUNCTION__)+" works only segments where the annihilator comes strictly after the creator");
-  }
+  if(s.t_end_<=s.t_start_) throw(std::string(__PRETTY_FUNCTION__)+" works only segments where the annihilator comes strictly after the creator");
   state_map::iterator next;
   int current_state=0;
 
@@ -665,8 +637,8 @@ void local_configuration::measure_sector_statistics(std::vector<double> &sector_
   int full_line_states=0;
 
   for(int i=0;i<n_orbitals_;++i){
-    int index=1<<i;
-    if(zero_order_orbital_occupied_[i]){
+    int index=pow(2,i);
+    if(zero_order_orbital_occupied_[0]){
       full_line_states+=index;//keep track of which time lines (orbitals) are fully occupied
       continue; //no segments->we're done for this orbital
     }
@@ -685,8 +657,7 @@ void local_configuration::measure_sector_statistics(std::vector<double> &sector_
   }
   else{
     //otherwise count intervals
-    state_map::iterator it=states.end(); it--; int state=it->second; //state of last operator is equal to initial state (interval winds around)
-    double tau=0.; int max_state=1<<n_orbitals();
+    double tau=0.; int state=0; int max_state=pow(2,n_orbitals_);
     for(state_map::iterator it=states.begin();it!=states.end();++it){
       sector_statistics[state+full_line_states]+=(it->first-tau)/beta_*sign;
       tau=it->first; state=it->second;
@@ -694,10 +665,6 @@ void local_configuration::measure_sector_statistics(std::vector<double> &sector_
     }
     sector_statistics[state+full_line_states]+=(beta_-tau)/beta_*sign;//don't forget the last interval
   }
+  double sum=0;
+}
 
-}
-// return the total weight of the local configuration
-//this is an expensive debug operation
-double local_configuration::full_weight() const{
-  return 1.;
-}

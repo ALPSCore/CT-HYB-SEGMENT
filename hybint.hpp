@@ -55,17 +55,16 @@ private:
   int n_orbitals_;
 };
 
-//This class handles the 'mu' term (chemical potential term). In the simplest case, 'mu' is just a constant for all orbitals.
-//The values can be different through a magnetic or christal field, or due to a double counting which is orbitally dependent.
+//this class handles the 'mu' term (chemical potential term). In the most simple case, 'mu' is just a constant for all orbitals. More complicated situations happen, where e.g. there is a double counting which is orbital dependent.
 class chemical_potential{
 public:
   chemical_potential(const alps::params &p){
     extern int global_mpi_rank;
-    if(p.exists("MU"))
-      val_.resize(p["N_ORBITALS"], p["MU"]); //TODO define default p[MU] = 0
-    else if(p.exists("MU_VECTOR")){
-      std::string mufilename=p["MU_VECTOR"].as<std::string>();
-      if(p["MU_IN_HDF5"]){
+    val_.resize(p["N_ORBITALS"], p["MU"]);
+    if(p.defined("MU_VECTOR")){
+      if(p.defined("MU") && !global_mpi_rank){ std::cout << "Warning::parameter MU_VECTOR defined, ignoring parameter MU" << std::flush << std::endl; };
+      std::string mufilename=p["MU_VECTOR"];
+      if(p.defined("MU_IN_HDF5") && p["MU_IN_HDF5"]){//attempt to read from h5 archive
         alps::hdf5::archive ar(mufilename, alps::hdf5::archive::READ);
         ar>>alps::make_pvp("/MUvector",val_);
       }
