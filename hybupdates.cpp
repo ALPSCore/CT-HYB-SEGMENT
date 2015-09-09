@@ -97,7 +97,7 @@ void hybridization::change_zero_order_state_update(){
   int orbital=(int)(random()*n_orbitals);
 
   //changing the zero order state only makes sense if we are at zero order.
-  if(!local_config.order(orbital)==0) return;
+  if(local_config.order(orbital)!=0) return;
   
   //propose to change orbital from occuppied to unoccuppied.
   if(local_config.zero_order_orbital_occupied(orbital)){
@@ -369,4 +369,4 @@ void hybridization::spin_flip_update(int orbital){
     hyb_config.insert_segment(new_segment, orbital);
   }
 }
-//}
+
