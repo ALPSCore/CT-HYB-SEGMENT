@@ -3,9 +3,12 @@ cmake_minimum_required (VERSION 2.8.12)
 # aware of ALPSCore location
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-project(alps-hybridization)
+project(alps_cthyb)
 
 # Disable in-source builds
+if (${CMAKE_BINARY_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
+    message(FATAL_ERROR "In source builds are disabled. Please use a separate build directory.")
+endif()
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
@@ -18,7 +21,7 @@ include_directories(
     ${CMAKE_BINARY_DIR}
 )
 
-set (QMC_HYBRIDIZATION_SOURCE
+set (ALPS_CTHYB_SOURCE
    hybsim.cpp
    hyblocal.cpp
    hybint.cpp
@@ -30,13 +33,16 @@ set (QMC_HYBRIDIZATION_SOURCE
    hybupdates.cpp
    hybevaluate.cpp
    hybmeasurements.cpp)
-add_library(alps_hyb_exp STATIC ${QMC_HYBRIDIZATION_SOURCE})
-target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES})
+add_library(alps_hyb_exp OBJECT ${ALPS_CTHYB_SOURCE})
+#target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES})
 set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-add_executable(hybridization hybmain.cpp)
-target_link_libraries(hybridization alps_hyb_exp ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
-set_target_properties(hybridization PROPERTIES POSITION_INDEPENDENT_CODE ON)
-install (TARGETS hybridization DESTINATION bin )
+set(EXEC_NAME alps_cthyb)
+add_executable(${EXEC_NAME} hybmain.cpp $<TARGET_OBJECTS:alps_hyb_exp>)
+target_link_libraries(${EXEC_NAME} ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
+set_target_properties(${EXEC_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+install (TARGETS ${EXEC_NAME} DESTINATION bin )
 
-
+### Additional installation files
+# configuration file for module managers, such as LMOD
+configure_file("${CMAKE_SOURCE_DIR}/misc/alps_cthyb.lmod.in" "${CMAKE_BINARY_DIR}/alps_cthyb.lmod")
