@@ -33,11 +33,11 @@ interaction_matrix::interaction_matrix(const alps::params &p){
   extern int global_mpi_rank;
   n_orbitals_=p["N_ORBITALS"];
   val_.resize(n_orbitals_*n_orbitals_,0.);
-  //if the parameter U_MATRIX is defined: read in the U_MATRIX from file
-  if(p.defined("U_MATRIX")){
-    if(p.defined("U") && !global_mpi_rank){ std::cout << "Warning::parameter U_MATRIX defined, ignoring parameter U" << std::flush << std::endl; };
+  //if the parameter U_MATRIX exists: read in the U_MATRIX from file
+  if(p.exists("U_MATRIX")){
+    if(p.exists("U") && !global_mpi_rank){ std::cout << "Warning::parameter U_MATRIX exists, ignoring parameter U" << std::flush << std::endl; };
     std::string ufilename=p["U_MATRIX"];
-    if(p.defined("UMATRIX_IN_HDF5") && p["UMATRIX_IN_HDF5"]){//attempt to read from h5 archive
+    if(p.exists("UMATRIX_IN_HDF5") && p["UMATRIX_IN_HDF5"]){//attempt to read from h5 archive
       alps::hdf5::archive ar(ufilename, alps::hdf5::archive::READ);
       ar>>alps::make_pvp("/Umatrix",val_);
     }

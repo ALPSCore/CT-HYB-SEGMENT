@@ -55,11 +55,11 @@ for(std::size_t i=0; i<ntime();++i)
 //In case of text files the file format is index - hyb_1 - hyb2 - hyb3 - ... in columns that go from time=0 to time=beta. Note that
 //the hybridization function is in imaginary time and always positive between zero and \beta.
 void hybfun::read_hybridization_function(const alps::params &p){
-  if(!p.defined("DELTA")) throw(std::invalid_argument(std::string("Parameter DELTA missing, filename for hybridization function not specified.")));
+  if(!p.exists("DELTA")) throw(std::invalid_argument(std::string("Parameter DELTA missing, filename for hybridization function not specified.")));
   std::string fname=p["DELTA"];
-  if(p.defined("DELTA_IN_HDF5") && p["DELTA_IN_HDF5"]){//attempt to read from h5 archive
+  if(p.exists("DELTA_IN_HDF5") && p["DELTA_IN_HDF5"]){//attempt to read from h5 archive
     alps::hdf5::archive ar(fname, alps::hdf5::archive::READ);
-    if(p.defined("DMFT_FRAMEWORK") && p["DMFT_FRAMEWORK"]){//read in as green_function
+    if(p.exists("DMFT_FRAMEWORK") && p["DMFT_FRAMEWORK"]){//read in as green_function
       read_hdf5(ar,"/Delta");
     }
     else{//plain hdf5

@@ -60,11 +60,12 @@ class chemical_potential{
 public:
   chemical_potential(const alps::params &p){
     extern int global_mpi_rank;
-    val_.resize(p["N_ORBITALS"], p["MU"]);
-    if(p.defined("MU_VECTOR")){
-      if(p.defined("MU") && !global_mpi_rank){ std::cout << "Warning::parameter MU_VECTOR defined, ignoring parameter MU" << std::flush << std::endl; };
+    val_.resize(p["N_ORBITALS"]);
+    if(p.exists("MU")) val_.assign(p["N_ORBITALS"], p["MU"]);
+    if(p.exists("MU_VECTOR")){
+      if(p.exists("MU") && !global_mpi_rank){ std::cout << "Warning::parameter MU_VECTOR exists, ignoring parameter MU" << std::flush << std::endl; };
       std::string mufilename=p["MU_VECTOR"];
-      if(p.defined("MU_IN_HDF5") && p["MU_IN_HDF5"]){//attempt to read from h5 archive
+      if(p.exists("MU_IN_HDF5") && p["MU_IN_HDF5"]){//attempt to read from h5 archive
         alps::hdf5::archive ar(mufilename, alps::hdf5::archive::READ);
         ar>>alps::make_pvp("/MUvector",val_);
       }

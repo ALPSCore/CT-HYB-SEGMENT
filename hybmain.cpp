@@ -53,7 +53,7 @@ int main(int argc, char* argv[]){
     //boot up MPI environment
     boost::mpi::environment env(argc, argv);
 #endif
-  
+
   //read in command line options
   alps::parameters_type<hybridization>::type parameters(argc, (const char**)argv, "/parameters");
   hybridization::define_parameters(parameters);
@@ -71,6 +71,7 @@ int main(int argc, char* argv[]){
       boost::mpi::communicator c;
       c.barrier();
       global_mpi_rank=c.rank();
+      if (!global_mpi_rank) std::cout << "Parameters : " << std::endl << parameters << std::endl;
       sim_type s(parameters, c);
 #endif
       //run the simulation
