@@ -33,7 +33,7 @@
 ret_int_fun::ret_int_fun(const alps::params &p):
 green_function<double>(p["N_TAU"].as<int>()+1, 1, 2)//2 "flavors": K and K'
 {
-  bool use_retarded_interaction=p["RET_INT_K"];
+  bool use_retarded_interaction=p.exists("RET_INT_K");
   if(!use_retarded_interaction) return;
 
   beta_=p["BETA"];

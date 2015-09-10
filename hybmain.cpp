@@ -56,13 +56,13 @@ int main(int argc, char* argv[]){
 
   //read in command line options
   alps::parameters_type<hybridization>::type parameters(argc, (const char**)argv, "/parameters");
-  hybridization::define_parameters(parameters);
+  sim_type::define_parameters(parameters);
   if (parameters.help_requested(std::cout)) {
     exit(0);
   }
 
     try {
-      int max_time=parameters["MAX_TIME"];
+      int max_time=parameters["timelimit"];
 
 #ifndef ALPS_HAVE_MPI
       global_mpi_rank=0;

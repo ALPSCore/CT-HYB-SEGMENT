@@ -169,7 +169,7 @@ if(!crank){
   if(parms.exists("RET_INT_K")) std::cout << "using retarded interaction" << std::endl;
   if(parms.exists("U_MATRIX")) std::cout << "reading U matrix from file " << parms["U_MATRIX"] << std::endl;
   if(parms.exists("MU_VECTOR")) std::cout << "reading MU vector from file " << parms["MU_VECTOR"] << std::endl;
-  std::cout << "Simulation scheduled to run " << parms["MAX_TIME"] << " seconds" << std::endl << std::endl;
+  std::cout << "Simulation scheduled to run " << parms["timelimit"] << " seconds" << std::endl << std::endl;
 }
 return;
 }
@@ -192,12 +192,12 @@ void hybridization::define_parameters(parameters_type & parameters) {
     if (parameters.is_restored()) {
         return;
     }
-    
     // Adds the parameters of the base class
     alps::mcbase::define_parameters(parameters);
     // Adds the convenience parameters (for save/load)
-    // followed by the ising specific parameters
-    alps::define_convenience_parameters(parameters)
+    alps::define_convenience_parameters(parameters);
+    // Define ct-hyb related parameters
+    parameters
         .description("hybridization expansion simulation")
         .define<bool>("ACCURATE_COVARIANCE", false, "TODO: UNDERSTAND WHAT THIS DOES")
         .define<std::string>("BASEPATH","", "path in hdf5 file to which results are stored")
@@ -209,7 +209,6 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<bool>("GLOBALFLIP", false, "TODO: UNDERSTAND WHAT THIS DOES.")
         .define<double>("J",0,"interaction value for density-density Hund's coupling term J.")
         .define<bool>("K_IN_HDF5",false,"set to true if retarded interaction K is stored in hdf5.")
-        .define<int>("MAX_TIME", 60, "code runtime in seconds.")
         .define<bool>("MEASURE_freq",false, "measure in frequency domain")
         .define<bool>("MEASURE_g2w",false, "measure two-particle Green's function in frequency space")
         .define<bool>("MEASURE_h2w",false, "measure two-particle H Green's function in frequency space")
@@ -231,16 +230,14 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<int >("N_W",0,"number of bosonic Matsubara frequencies")
         .define<int >("N_nn",0,"number of points for the measurement of the density density correlator")
         .define<int >("N_w2",0,"number of fermionic frequencies for the two-particle measurement")
-        .define<bool>("RET_INT_K",false,"set to true for using retarded interactions")
+        .define<std::string>("RET_INT_K","file with the retarted interaction information. See doc for format.")
         .define<bool>("SPINFLIP",false,"TODO: UNDERSTAND THIS PARAMETER")
         .define<int>("SWEEPS","total number of Monte Carlo sweeps to be done")
         .define<bool>("TEXT_OUTPUT","if this is enabled, we write text files in addition to hdf5 files")
         .define<int>("THERMALIZATION","thermalization steps")
-        .define<int>("Tmin", 60, "REDUNDANT PARAMETER THAT ALPS WANTS?")
-        .define<int>("Tmax", 60, "REDUNDANT PARAMETER THAT ALPS WANTS?")
         .define<double>("U","interaction value. Only specify if you are not reading an U matrix")
         .define<double>("Uprime",0,"interaction value Uprime. Only specify if you are not reading an U matrix")
         .define<std::string>("U_MATRIX","file name for file that contains the interaction matrix")
         .define<bool>("UMATRIX_IN_HDF5",false,"true if we store the U_matrix as /Umatrix in a hdf5 file")
-        .define<bool>("VERBOSE",true,"how verbose the code is. true = more output");
+        .define<bool>("VERBOSE",false,"how verbose the code is. true = more output");
 }
