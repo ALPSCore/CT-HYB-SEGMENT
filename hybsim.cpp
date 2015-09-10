@@ -223,7 +223,7 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<bool>("MU_IN_HDF5", false,"true if the file MU_VECTOR points to a hdf5 file")
         .define<int >("N_HISTOGRAM_ORDERS",200, "orders for the histograms of probability per order")
         .define<int >("N_LEGENDRE",0,"number of legendre coefficients")
-        .define<int >("N_MATSUBARA",0,"number of matsubara coefficients")
+        .define<int >("N_MATSUBARA",40,"number of matsubara coefficients")
         .define<int >("N_MEAS","number of updates per measurement")
         .define<int >("N_ORBITALS","number of spin-orbitals (sometimes called flavors)")
         .define<int >("N_TAU","number of imaginary time discretization points")

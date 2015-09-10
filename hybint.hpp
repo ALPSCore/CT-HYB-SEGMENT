@@ -80,8 +80,9 @@ public:
           if(!mu_file.good()) throw std::runtime_error("Problem reading in MU_VECTOR.");
         }
       }
-    }else
+    }else if (!p.exists("MU")) {
       throw std::invalid_argument("please either define MU or MU_VECTOR in your parameters");
+      }
   }
   std::size_t n_orbitals(void)const { return val_.size(); }
   const double &operator[] (std::size_t flavor)const {
