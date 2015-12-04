@@ -9,9 +9,8 @@ from scipy import integrate
 def dos_function(omega):
     """ put here your dos"""
     nu = 10.0
-    w0 = 5.0
-    Gamma = 1.0
-    dos_f = lambda x : 1./(1 + np.exp(nu*(x-w0))) * 1./(1 + np.exp(-(nu*(x+w0)))) * Gamma
+    w0 = 10.0
+    dos_f = lambda x : 1./(1 + np.exp(nu*(x-w0))) * 1./(1 + np.exp(-(nu*(x+w0)))) 
     return dos_f(omega)
     
 
@@ -20,7 +19,7 @@ def generate_delta(params):
     beta = params["beta"]
     npts = params["npts"]
     print "DOS half-bandwidth : ", D
-    Gamma = 1.0 # /20 
+    Gamma = params["gamma"]
     dos_prec = 0.1 
 
     omega_grid = np.arange(-2*D,2*D,dos_prec)
@@ -29,8 +28,8 @@ def generate_delta(params):
     np.savetxt("dos.dat",data)
 
     fermi = lambda w : 1. / (1.+np.exp(beta*w))
-    delta_wt = lambda tau, w : -fermi(w) * np.exp(tau*w) * dos_function(w)
-    delta_f = lambda tau : integrate.quad(lambda w: -fermi(w) * np.exp(tau*w) * dos_function(w), -2*D, 2*D) 
+    delta_wt = lambda tau, w : -fermi(w) * np.exp(tau*w) * dos_function(w) * Gamma
+    delta_f = lambda tau : integrate.quad(lambda w: -fermi(w) * np.exp(tau*w) * dos_function(w) * Gamma, -2*D, 2*D) 
 
     tau_grid = np.linspace(0,beta,npts+1)
     delta_vals = np.array([delta_f(x)[0] for x in tau_grid])
@@ -54,6 +53,7 @@ if __name__ == "__main__":
     parser.add_argument('--beta', help='Inverse temperature', type=float, default = 5)
     parser.add_argument('--npts', help='Number of points on tau and Matsubara grid', type=int, default = 100)
     parser.add_argument('--D', help='half bandwidth parameter (grid is between [-2D; 2D])', type=float, default = 5)
+    parser.add_argument('--gamma', help='coupling strength', type=float, default = 1)
     args = parser.parse_args()
     generate_delta(vars(args))
 

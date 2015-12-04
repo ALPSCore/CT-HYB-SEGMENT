@@ -53,8 +53,8 @@ hybridization::hybridization(const alps::params &parms, int crank_)
     update_type.push_back("remove anti-segment ");
     update_type.push_back("swap segment        ");
     sweeps=0;                                  //Sweeps currently done
-  thermalization_sweeps = parms["THERMALIZATION"];                                 //Sweeps to be done for thermalization
-  total_sweeps = parms["SWEEPS"];                                                  //Sweeps to be done in total
+  thermalization_sweeps = parms["THERMALIZATION"].as<unsigned long>();                                 //Sweeps to be done for thermalization
+  total_sweeps = parms["SWEEPS"].as<unsigned long>();                                                  //Sweeps to be done in total
   n_orbitals = parms["N_ORBITALS"];                                                //number of orbitals
   sign = 1.;                                                                       //fermionic sign. plus or minus one.
 
@@ -232,12 +232,13 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<int >("N_w2",0,"number of fermionic frequencies for the two-particle measurement")
         .define<std::string>("RET_INT_K","file with the retarted interaction information. See doc for format.")
         .define<bool>("SPINFLIP",false,"TODO: UNDERSTAND THIS PARAMETER")
-        .define<int>("SWEEPS","total number of Monte Carlo sweeps to be done")
+        .define<unsigned long>("SWEEPS","total number of Monte Carlo sweeps to be done")
         .define<bool>("TEXT_OUTPUT","if this is enabled, we write text files in addition to hdf5 files")
-        .define<int>("THERMALIZATION","thermalization steps")
+        .define<unsigned long>("THERMALIZATION","thermalization steps")
         .define<double>("U","interaction value. Only specify if you are not reading an U matrix")
         .define<double>("Uprime",0,"interaction value Uprime. Only specify if you are not reading an U matrix")
         .define<std::string>("U_MATRIX","file name for file that contains the interaction matrix")
         .define<bool>("UMATRIX_IN_HDF5",false,"true if we store the U_matrix as /Umatrix in a hdf5 file")
-        .define<bool>("VERBOSE",false,"how verbose the code is. true = more output");
+        .define<bool>("VERBOSE",false,"how verbose the code is. true = more output")
+        ;
 }
