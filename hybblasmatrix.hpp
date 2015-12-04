@@ -277,7 +277,7 @@ public:
   void invert(){
     std::vector<double> B(size_*size_, 0.);
     std::vector<int> ipiv(size_,0);
-    int info;
+    int info=0;
     for(int i=0;i<size_;++i) B[i*size_+i]=1.;
     lapack::dgesv_(&size_, &size_, values_, &memory_size_, &(ipiv[0]), &(B[0]), &size_, &info);
     if(info){ throw(std::logic_error("in dgesv: info was not zero.")); }
