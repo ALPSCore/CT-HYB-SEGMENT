@@ -15,6 +15,7 @@ def dos_function(omega):
     
 
 def generate_delta(params):
+    print params
     D = params["D"]
     beta = params["beta"]
     npts = params["npts"]
