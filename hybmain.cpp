@@ -30,7 +30,7 @@
 #include <ctime>
 #include "hyb.hpp"
 #include "hybevaluate.hpp"
-#include <alps/mc/parseargs.hpp>
+//#include <alps/mc/parseargs.hpp>
 #ifdef ALPS_HAVE_MPI
 #include <alps/mc/mpiadapter.hpp>
 
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]){
 
 #ifdef ALPS_HAVE_MPI
     //boot up MPI environment
-    boost::mpi::environment env(argc, argv);
+    MPI_Init(&argc, &argv);
 #endif
 
   //read in command line options
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]){
       global_mpi_rank=0;
       sim_type s(parameters,global_mpi_rank);
 #else
-      boost::mpi::communicator c;
+      alps::mpi::communicator c;
       c.barrier();
       global_mpi_rank=c.rank();
       if (!global_mpi_rank) std::cout << "Parameters : " << std::endl << parameters << std::endl;
@@ -88,6 +88,7 @@ int main(int argc, char* argv[]){
         collect_results(s);
       }
       c.barrier();
+      MPI_Finalize(); 
 #else
     }
 #endif
