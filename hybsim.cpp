@@ -209,7 +209,7 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<bool>("GLOBALFLIP", false, "TODO: UNDERSTAND WHAT THIS DOES.")
         .define<double>("J",0,"interaction value for density-density Hund's coupling term J.")
         .define<bool>("K_IN_HDF5",false,"set to true if retarded interaction K is stored in hdf5.")
-        .define<bool>("MEASURE_freq",false, "measure in frequency domain")
+        .define<bool>("MEASURE_freq",true, "measure in frequency domain")
         .define<bool>("MEASURE_g2w",false, "measure two-particle Green's function in frequency space")
         .define<bool>("MEASURE_h2w",false, "measure two-particle H Green's function in frequency space")
         .define<bool>("MEASURE_legendre",false, "measure legendre Green's function coefficients")

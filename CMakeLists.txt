@@ -16,6 +16,8 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 find_package(ALPSCore COMPONENTS accumulators params mc hdf5)
 find_package(LAPACK)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g -DBOOST_DISABLE_ASSERTS")
+
 include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
@@ -33,13 +35,13 @@ set (ALPS_CTHYB_SOURCE
    hybupdates.cpp
    hybevaluate.cpp
    hybmeasurements.cpp)
-add_library(alps_hyb_exp OBJECT ${ALPS_CTHYB_SOURCE})
-#target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES})
+add_library(alps_hyb_exp STATIC ${ALPS_CTHYB_SOURCE})
+target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES})
 set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set(EXEC_NAME alps_cthyb)
-add_executable(${EXEC_NAME} hybmain.cpp $<TARGET_OBJECTS:alps_hyb_exp>)
-target_link_libraries(${EXEC_NAME} ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
+add_executable(${EXEC_NAME} hybmain.cpp)
+target_link_libraries(${EXEC_NAME} alps_hyb_exp ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
 set_target_properties(${EXEC_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 install (TARGETS ${EXEC_NAME} DESTINATION bin )
 
