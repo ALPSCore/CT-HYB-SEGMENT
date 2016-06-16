@@ -29,7 +29,7 @@
 
 #include <boost/local_function.hpp>
 #include"hyb.hpp"
-#include"alps/numeric/vector_functions.hpp"
+#include<alps/numeric/vector_functions.hpp>
 
 // MOVE to alpscore
 template<typename T, typename T2>
@@ -66,7 +66,7 @@ void hybridization::create_measurements(){//called once in the constructor
 
   //basic measurements for all orbitals
   measurements<< vec_obs_t("order_histogram_total");
-  measurements<< vec_obs_t("sector_statistics");
+  measurements<< vec_obs_t("sector_statistics");;
   measurements<< obs_t("Sign");
 
   g2wr_names.resize(n_orbitals); g2wi_names.resize(n_orbitals);

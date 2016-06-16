@@ -63,12 +63,13 @@ void hybridization::update(){
       }
     }
     nsweeps = ++sweeps;
-
+    //std::cout<<"Sweep "<<nsweeps<<std::endl;
     //these are cheap measurements that should be done every time.
     if(is_thermalized()){
       measure_order();
       measure_G();
       meas_count++;
+      //std::cout<<"Meas: "<<meas_count<<std::endl;
     }
   }//N_meas
 
