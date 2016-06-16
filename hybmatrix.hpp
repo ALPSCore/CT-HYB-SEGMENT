@@ -40,7 +40,7 @@
 typedef std::map<double,std::size_t> hyb_map_t;
 class hybmatrix:public blas_matrix{
 public:
-  hybmatrix(const alps::params &p){ determinant_=1.; determinant_old_=1.; permutation_sign_=1.; beta_=p["BETA"]; measure_g2w_=p["MEASURE_g2w"]; measure_h2w_=p["MEASURE_h2w"]; }
+  hybmatrix(const alps::params &p){ determinant_=1.; determinant_old_=1.; permutation_sign_=1.; beta_=p["BETA"]; measure_g2w_=p["cthyb.MEASURE_g2w"]; measure_h2w_=p["cthyb.MEASURE_h2w"]; }
   double hyb_weight_change_insert(const segment &new_segment, int orbital, const hybfun &Delta);
   double hyb_weight_change_remove(const segment &new_segment, int orbital, const hybfun &Delta);
   void insert_segment(const segment &new_segment, int orbital);

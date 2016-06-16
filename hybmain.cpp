@@ -62,7 +62,7 @@ int main(int argc, char* argv[]){
   }
 
     try {
-      unsigned long max_time=parameters["timelimit"];
+      unsigned long max_time=parameters["MAX_TIME"];
 
 #ifndef ALPS_HAVE_MPI
       global_mpi_rank=0;
@@ -80,9 +80,9 @@ int main(int argc, char* argv[]){
       //on the master: collect MC results and store them in file, then postprocess
       if (global_mpi_rank==0){
         alps::results_type<hybridization>::type results = collect_results(s);
-        std::string output_path = parameters["BASEPATH"].as<std::string>()+std::string("/simulation/results");
-        alps::save_results(results, parameters, boost::filesystem::path(parameters["outputfile"].as<std::string>()), output_path); //"/simulation/results");
-        master_final_tasks(results, parameters, parameters["outputfile"].as<std::string>());
+        std::string output_path = parameters["cthyb.BASEPATH"].as<std::string>()+std::string("/simulation/results");
+        alps::save_results(results, parameters, boost::filesystem::path(parameters["cthyb.OUTPUTFILE"].as<std::string>()), output_path); //"/simulation/results");
+        master_final_tasks(results, parameters, parameters["cthyb.OUTPUTFILE"].as<std::string>());
 #ifdef ALPS_HAVE_MPI
       } else{ //on any slave: send back results to master.
         collect_results(s);

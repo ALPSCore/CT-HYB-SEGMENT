@@ -60,8 +60,8 @@ class chemical_potential{
 public:
   chemical_potential(const alps::params &p){
     extern int global_mpi_rank;
-    val_.resize(p["N_ORBITALS"]);
-    if(p.exists("MU")) val_.assign(p["N_ORBITALS"], p["MU"]);
+    val_.resize(p["FLAVORS"]);
+    if(p.exists("MU")) val_.assign(p["FLAVORS"], p["MU"].as<double>() + p["U"].as<double>()/2.);
     if(p.exists("MU_VECTOR")){
       if(p.exists("MU") && !global_mpi_rank){ std::cout << "Warning::parameter MU_VECTOR exists, ignoring parameter MU" << std::flush << std::endl; };
       std::string mufilename=p["MU_VECTOR"];
