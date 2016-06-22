@@ -37,12 +37,12 @@
 
 
 #ifdef HYB_SIM_MAIN
-std::vector<uint64_t> nacc,nprop;
-uint64_t nsweeps;
+std::vector<int64_t> nacc,nprop;
+int64_t nsweeps;
 std::vector<std::string> update_type;
 #else
-extern std::vector<uint64_t> nacc,nprop;
-extern uint64_t nsweeps;
+extern std::vector<int64_t> nacc,nprop;
+extern int64_t nsweeps;
 extern std::vector<std::string> update_type;
 #endif
 
@@ -62,8 +62,6 @@ public:
   friend std::ostream &operator<<(std::ostream &os, const hybridization &hyb);
 
 private:
-//  std::vector<uint64_t> nacc,nprop;
-//  std::vector<std::string> update_type;
   bool VERBOSE;
   int crank;
   //initialize all measurements and measurement vectors (with 0)
@@ -106,9 +104,9 @@ private:
   void spin_flip_update(int orbital);
 
   //algorithm parameters
-  uint64_t sweeps;
-  uint64_t thermalization_sweeps;
-  uint64_t total_sweeps;
+  int64_t sweeps;
+  int64_t thermalization_sweeps;
+  int64_t total_sweeps;
   std::size_t n_orbitals;
   double sign;
 
@@ -172,7 +170,7 @@ private:
   std::vector<double>h2wr;
   std::vector<double>h2wi;
 
-  uint64_t meas_count;
+  int64_t meas_count;
 
   //local impurity operator configuration
   local_configuration local_config;
