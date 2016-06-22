@@ -15,10 +15,12 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 # Request the ALPSCore package:
 find_package(ALPSCore COMPONENTS accumulators params mc hdf5)
 find_package(LAPACK)
+find_package(MPI)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
+    ${MPI_CXX_INCLUDE_PATH}
 )
 
 set (ALPS_CTHYB_SOURCE
@@ -33,14 +35,13 @@ set (ALPS_CTHYB_SOURCE
    hybupdates.cpp
    hybevaluate.cpp
    hybmeasurements.cpp)
-add_library(alps_hyb_exp OBJECT ${ALPS_CTHYB_SOURCE})
-#target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES})
+add_library(alps_hyb_exp ${ALPS_CTHYB_SOURCE})
+target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES} ${MPI_CXX_LIBRARIES})
 set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set(EXEC_NAME alps_cthyb)
-add_executable(${EXEC_NAME} hybmain.cpp $<TARGET_OBJECTS:alps_hyb_exp>)
-target_link_libraries(${EXEC_NAME} ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
-set_target_properties(${EXEC_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_executable(${EXEC_NAME} hybmain.cpp)
+target_link_libraries(${EXEC_NAME} alps_hyb_exp ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
 install (TARGETS ${EXEC_NAME} DESTINATION bin )
 
 ### Additional installation files
