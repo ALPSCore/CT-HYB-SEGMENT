@@ -29,6 +29,8 @@
 #ifndef HYB_EVALUATE
 #define HYB_EVALUATE
 #include <boost/math/special_functions/bessel.hpp>
+#include <alps/gf/gf.hpp>
+#include <alps/gf/tail.hpp>
 #include <alps/mc/api.hpp>
 
 void evaluate_basics(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
@@ -51,5 +53,7 @@ struct jackson{//the Jackson kernel
   int N_l;
 };
 
+void write_Gtau_h5gf(itime_green_function_t Gtau, const alps::parameters_type<hybridization>::type &parms);
+void write_Gw_h5gf(matsubara_green_function_t Gw, const alps::parameters_type<hybridization>::type &parms);
 #endif
 

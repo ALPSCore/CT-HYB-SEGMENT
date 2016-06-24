@@ -31,9 +31,9 @@
 //noffidag_orbitals: number of offdiagonal orbitals. ndiag_orbitals: number
 //of diagonal orbitals. 
 ret_int_fun::ret_int_fun(const alps::params &p):
-green_function<double>(p["N_TAU"].as<int>()+1, 1, 2)//2 "flavors": K and K'
+green_function<double>(p["N"].as<int>()+1, 1, 2)//2 "flavors": K and K'
 {
-  bool use_retarded_interaction=p.exists("RET_INT_K");
+  bool use_retarded_interaction=p.exists("cthyb.RET_INT_K");
   if(!use_retarded_interaction) return;
 
   beta_=p["BETA"];
@@ -58,9 +58,9 @@ for(std::size_t i=0; i<ntime();++i)
 //In  case of text files the file format is index - hyb_1 - hyb2 - hyb3 - ... in columns that go from time=0 to time=beta. Note that
 //the retarded interaction function is in imaginary time and always positive both for negative and positive times. It is also symmetric.
 void ret_int_fun::read_interaction_K_function(const alps::params &p){
-  if(!p.exists("RET_INT_K")) throw(std::invalid_argument(std::string("Parameter RET_INT_K missing, filename for retarded interaction function not specified.")));
-  std::string fname=p["RET_INT_K"];
-  if(p.exists("K_IN_HDF5") && p["K_IN_HDF5"]){//attempt to read from h5 archive
+  if(!p.exists("cthyb.RET_INT_K")) throw(std::invalid_argument(std::string("Parameter RET_INT_K missing, filename for retarded interaction function not specified.")));
+  std::string fname=p["cthyb.RET_INT_K"];
+  if(p.exists("cthyb.K_IN_HDF5") && p["cthyb.K_IN_HDF5"]){//attempt to read from h5 archive
     alps::hdf5::archive ar(fname, alps::hdf5::archive::READ);
     std::vector<double> tmp(ntime());
     ar>>alps::make_pvp("/Ret_int_K",tmp);
@@ -75,18 +75,18 @@ void ret_int_fun::read_interaction_K_function(const alps::params &p){
   else{//read from text file
     std::ifstream infile(fname.c_str());
     if(!infile.good()){
-      throw(std::invalid_argument(std::string("could not open retarded interaction file (text format) ") + p["RET_INT_K"].as<std::string>()));
+      throw(std::invalid_argument(std::string("could not open retarded interaction file (text format) ") + p["cthyb.RET_INT_K"].as<std::string>()));
     }
     for (std::size_t i=0; i<ntime(); i++) {
       if(!infile.good()){
-        throw(std::invalid_argument(std::string("could not read retarded interaction file (text format) ") + p["RET_INT_K"].as<std::string>() + ". probably wrong number of lines"));
+        throw(std::invalid_argument(std::string("could not read retarded interaction file (text format) ") + p["cthyb.RET_INT_K"].as<std::string>() + ". probably wrong number of lines"));
       }
       double dummy;
       infile >> dummy;
       //std::cout<<i<<" "<<ntime()<<" "<<"dummy: "<<dummy<<std::endl;
       for (std::size_t j=0; j<nflavor(); j++){
         if(!infile.good()){
-          throw(std::invalid_argument(std::string("could not read retarded interaction file (text format) ") + p["RET_INT_K"].as<std::string>() + ". probably wrong number of columns"));
+          throw(std::invalid_argument(std::string("could not read retarded interaction file (text format) ") + p["cthyb.RET_INT_K"].as<std::string>() + ". probably wrong number of columns"));
         }
         double delta;
         infile >> delta;

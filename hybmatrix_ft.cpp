@@ -87,8 +87,10 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
     cdagger_times[it->second] = it->first;
   }
 
-  memset(&(G2w[0]),0, G2w.size()*sizeof(std::complex<double>));
-  memset(&(F2w[0]),0, F2w.size()*sizeof(std::complex<double>));
+  if(measure_g2w_)
+    memset(&(G2w[0]),0, G2w.size()*sizeof(std::complex<double>));
+  if(measure_h2w_)
+    memset(&(F2w[0]),0, F2w.size()*sizeof(std::complex<double>));
 
   double w_ini = (2*(-N_w2/2)+1)*M_PI/beta_;
   double w_inc = 2*M_PI/beta_;
