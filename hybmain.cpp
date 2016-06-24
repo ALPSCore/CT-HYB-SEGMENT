@@ -81,14 +81,14 @@ int main(int argc, char* argv[]){
       if (global_mpi_rank==0){
         alps::results_type<hybridization>::type results = collect_results(s);
         std::string output_path = parameters["cthyb.BASEPATH"].as<std::string>()+std::string("/simulation/results");
-        alps::save_results(results, parameters, boost::filesystem::path(parameters["cthyb.OUTPUTFILE"].as<std::string>()), output_path); //"/simulation/results");
-        master_final_tasks(results, parameters, parameters["cthyb.OUTPUTFILE"].as<std::string>());
+        alps::save_results(results, parameters, "sim.h5", output_path); //"/simulation/results");
+        master_final_tasks(results, parameters, "sim.h5");
 #ifdef ALPS_HAVE_MPI
       } else{ //on any slave: send back results to master.
         collect_results(s);
       }
       c.barrier();
-      MPI_Finalize(); 
+      MPI_Finalize();
 #else
     }
 #endif

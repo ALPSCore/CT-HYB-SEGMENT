@@ -55,7 +55,15 @@ for(std::size_t i=0; i<ntime();++i)
 //In case of text files the file format is index - hyb_1 - hyb2 - hyb3 - ... in columns that go from time=0 to time=beta. Note that
 //the hybridization function is in imaginary time and always positive between zero and \beta.
 void hybfun::read_hybridization_function(const alps::params &p){
-  if(!p.exists("cthyb.DELTA")) throw(std::invalid_argument(std::string("Parameter DELTA missing, filename for hybridization function not specified.")));
+  if(!p.exists("cthyb.DELTA")){
+    if(p.exists("cthyb.DMFT_FRAMEWORK") && p["cthyb.DMFT_FRAMEWORK"] && p.exists("solver.INFILE_H5GF")) {
+      read_hybridization_from_h5gf(p);
+      return;
+    }
+    else {
+      throw(std::invalid_argument(std::string("Parameter DELTA missing, filename for hybridization function not specified.")));
+    }
+  }
   std::string fname=p["cthyb.DELTA"];
   if(p.exists("cthyb.DELTA_IN_HDF5") && p["cthyb.DELTA_IN_HDF5"]){//attempt to read from h5 archive
     alps::hdf5::archive ar(fname, alps::hdf5::archive::READ);
@@ -93,6 +101,52 @@ void hybfun::read_hybridization_function(const alps::params &p){
       }
     }
   }
+}
+
+void hybfun::read_hybridization_from_h5gf(const alps::params &p) {
+  double mu = p["MU"];
+  int n_tau = p["N"];
+  int n_orbitals = p["FLAVORS"];
+  int n_matsubara = p["NMATSUBARA"];
+  alps::hdf5::archive ar(p["solver.INFILE_H5GF"], alps::hdf5::archive::READ);
+  alps::gf::omega_sigma_gf_with_tail G0_omega(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta_, n_matsubara), alps::gf::index_mesh(n_orbitals)));
+  alps::gf::omega_sigma_gf_with_tail Delta_w(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta_, n_matsubara), alps::gf::index_mesh(n_orbitals)));
+  alps::gf::itime_sigma_gf_with_tail Delta(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta_, n_tau), alps::gf::index_mesh(n_orbitals)));
+  G0_omega.load(ar, "/G0");
+  for (alps::gf::matsubara_index i(0); i<G0_omega.mesh1().extent(); ++i) {
+    for (alps::gf::index s(0); s < G0_omega.mesh2().extent(); ++s) {
+      std::complex<double> iw(0., (2 * i() + 1) * M_PI / beta_);
+      Delta_w(i, s) = iw + mu - 1.0/G0_omega(i, s);
+    }
+  }
+  typedef alps::gf::one_index_gf<double, alps::gf::index_mesh> density_matrix_type;
+  density_matrix_type tail=density_matrix_type(alps::gf::index_mesh(2));
+  tail.initialize();
+  double t = p["t"];
+  double tprime = p["tprime"];
+  int L = p["L"];
+  double e2 = 0.0;
+  for (int i = 0; i<L; i++) {
+    for (int j = 0; j<L; j++) {
+      double kx = i * M_PI * 2.0 / L;
+      double ky = j * M_PI * 2.0 / L;
+      double e = -2.0 * t * (cos(kx)+cos(ky)) - 4.0 * tprime * cos(kx) * cos(ky);
+      e2 += e*e / (L*L);
+    }
+  }
+  tail(alps::gf::index(0)) = -e2;
+  tail(alps::gf::index(1)) = -e2;
+  Delta_w.set_tail(1,tail);
+  alps::gf::fourier_frequency_to_time(Delta_w, Delta);
+  for (alps::gf::itime_index i(0); i<Delta.mesh1().extent(); ++i) {
+    for (alps::gf::index s(0); s<Delta.mesh2().extent(); ++s) {
+      operator()(i(), s()) = Delta(i, s);
+    }
+  }
+
+  alps::hdf5::archive test_ar("test.h5", "w");
+  Delta.save(test_ar, "/Delta_tau");
+  Delta_w.save(test_ar, "/Delta_omega");
 }
 
 std::ostream &operator<<(std::ostream &os, const hybfun &hyb){

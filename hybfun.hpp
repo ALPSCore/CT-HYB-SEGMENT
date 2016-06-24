@@ -28,6 +28,9 @@
 
 #include <fstream>
 #include <alps/params.hpp>
+#include <alps/gf/gf.hpp>
+#include <alps/gf/tail.hpp>
+#include <alps/gf/fourier.hpp>
 #include "./green_function.h"
 
 #ifndef HYB_FUN_HPP
@@ -43,6 +46,7 @@ class hybfun : public green_function<double>{
   friend std::ostream &operator<<(std::ostream &os, const hybfun &hyb);
 private:
   void read_hybridization_function(const alps::params &p);
+  void read_hybridization_from_h5gf(const alps::params &p);
   void hybridization_function_sanity_check(void);
   double beta_;
 };

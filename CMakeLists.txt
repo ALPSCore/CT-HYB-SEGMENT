@@ -13,10 +13,10 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Request the ALPSCore package:
-find_package(ALPSCore COMPONENTS accumulators params mc hdf5)
+find_package(ALPSCore COMPONENTS accumulators params mc hdf5 gf)
 find_package(LAPACK)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g -DBOOST_DISABLE_ASSERTS")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DBOOST_DISABLE_ASSERTS")
 
 include_directories(
     ${CMAKE_SOURCE_DIR}

@@ -241,7 +241,10 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<bool>("UMATRIX_IN_HDF5",false,"true if we store the U_matrix as /Umatrix in a hdf5 file")
         .define<bool>("VERBOSE",false,"how verbose the code is. true = more output")
         .define<std::size_t>("MAX_TIME", "maximum solver runtime")
-        .define<std::string>("cthyb.OUTPUTFILE", "cthyb.out.h5", "name of the output file")
-        .define<std::string>("cthyb.CHECKPOINT", "cthyb.clone.h5", "name of the checkpoint file to save to")
-        ;
+        .define<std::string>("solver.OUTFILE_H5GF", "alps_solver_in.h5gf", "H5GF Green's function input file containing G0(omega,k) at /G0 and G0(ij, tau) at /G0_tau_rs")
+        .define<std::string>("solver.INFILE_H5GF", "alps_solver_out.h5gf","H5GF Green's function output file containing G(omega,k) at /G_omega and G(ij, tau) at /G_tau")
+        .define<int >("L", 200, "Number of Brillouin Zone points")
+        .define<double>("t", 1.0, "Hopping element: nearest neighbor")
+        .define<double>("tprime", 0.0, "Hopping element: next-nearest neighbor")
+  ;
 }

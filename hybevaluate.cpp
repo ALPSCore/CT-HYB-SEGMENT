@@ -134,6 +134,9 @@ void evaluate_gtau(const alps::results_type<hybridization>::type &results,
   //store in hdf5
   G_tau.write_hdf5(solver_output, "/G_tau");
 
+  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF"))
+    write_Gtau_h5gf(G_tau, parms);
+
   //COVARIANCE
 /*
   for(std::size_t i=0; i<n_orbitals; i++){
@@ -202,6 +205,9 @@ void evaluate_freq(const alps::results_type<hybridization>::type &results,
   G_omega.write_hdf5(solver_output, "/G_omega");
   F_omega.write_hdf5(solver_output, "/F_omega");
   S_omega.write_hdf5(solver_output, "/S_omega");
+
+  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF"))
+    write_Gw_h5gf(G_omega, parms);
 
   std::ofstream Gw_file("Gw.dat");
   for(std::size_t n=0;n<N_w;++n){
@@ -606,5 +612,37 @@ void evaluate_2p(const alps::results_type<hybridization>::type &results,
       }
     }//j
   }//i
+}
+
+
+void write_Gtau_h5gf(itime_green_function_t Gtau, const alps::parameters_type<hybridization>::type &parms) {
+  double beta = parms["BETA"];
+  int n_tau = parms["N"];
+  int n_orbitals = parms["FLAVORS"];
+  alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+
+  alps::gf::itime_sigma_gf_with_tail Gtau_h5gf(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta, n_tau), alps::gf::index_mesh(n_orbitals)));
+  for (alps::gf::itime_index i(0); i < Gtau_h5gf.mesh1().extent(); i++){
+    for (alps::gf::index s(0); s < Gtau_h5gf.mesh2().extent(); s++) {
+      Gtau_h5gf(i, s) = Gtau(i(), 0, 0, s());
+    }
+  }
+  Gtau_h5gf.save(ar, "/G_tau");
+}
+
+
+void write_Gw_h5gf(matsubara_green_function_t Gw, const alps::parameters_type<hybridization>::type &parms) {
+  double beta = parms["BETA"];
+  int n_matsubara = parms["N"];
+  int n_orbitals = parms["FLAVORS"];
+  alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+
+  alps::gf::omega_sigma_gf_with_tail Gw_h5df(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta, n_matsubara), alps::gf::index_mesh(n_orbitals)));
+  for (alps::gf::matsubara_index w(0); w < Gw_h5df.mesh1().extent(); w++) {
+    for (alps::gf::index s(0); s < Gw_h5df.mesh2().extent(); s++) {
+      Gw_h5df(w, s) = Gw(w(), 0, 0, s());
+    }
+  }
+  Gw_h5df.save(ar, "/G_omega");
 }
 

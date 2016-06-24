@@ -63,17 +63,16 @@ void hybridization::update(){
       }
     }
     nsweeps = ++sweeps;
-    //std::cout<<"Sweep "<<nsweeps<<std::endl;
+
     //these are cheap measurements that should be done every time.
     if(is_thermalized()){
       measure_order();
       measure_G();
       meas_count++;
-      //std::cout<<"Meas: "<<meas_count<<std::endl;
     }
   }//N_meas
 
-  if(VERBOSE && sweeps%100000==0 && crank==0) {
+  if(VERBOSE && sweeps%10000==0 && crank==0) {
     int tot_acc=0,cur_prec = std::cout.precision();
     for (int i=0;i<nacc.size();i++) tot_acc += nacc[i];
     std::cout << std::endl << "|------------- Simulation details after " << sweeps << " sweeps ------------|" << std::endl;
