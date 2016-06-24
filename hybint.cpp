@@ -31,7 +31,7 @@
 
 interaction_matrix::interaction_matrix(const alps::params &p){
   extern int global_mpi_rank;
-  n_orbitals_=p["N_ORBITALS"];
+  n_orbitals_=p["FLAVORS"];
   val_.resize(n_orbitals_*n_orbitals_,0.);
   //if the parameter U_MATRIX exists: read in the U_MATRIX from file
   if(p.exists("U_MATRIX")){
@@ -54,7 +54,7 @@ interaction_matrix::interaction_matrix(const alps::params &p){
     }
   }else{
     double U=p["U"]; //no default
-    double J=p["J"]; //
+    double J=p["cthyb.J"]; //
     double Uprime = p["Uprime"]; //
     assemble(U, Uprime, J);
   }

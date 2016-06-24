@@ -13,9 +13,11 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Request the ALPSCore package:
-find_package(ALPSCore COMPONENTS accumulators params mc hdf5)
+find_package(ALPSCore COMPONENTS accumulators params mc hdf5 gf)
 find_package(LAPACK)
 find_package(MPI)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DBOOST_DISABLE_ASSERTS")
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
@@ -42,6 +44,7 @@ set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set(EXEC_NAME alps_cthyb)
 add_executable(${EXEC_NAME} hybmain.cpp)
 target_link_libraries(${EXEC_NAME} alps_hyb_exp ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
+set_target_properties(${EXEC_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 install (TARGETS ${EXEC_NAME} DESTINATION bin )
 
 ### Additional installation files

@@ -30,7 +30,7 @@
 
 hybridization_configuration::hybridization_configuration(const alps::params &p):
   Delta(p),
-  hybmat_((int)(p["N_ORBITALS"]), p)
+  hybmat_((int)(p["FLAVORS"]), p)
 {
 }
 

@@ -29,7 +29,7 @@
 
 #include <boost/local_function.hpp>
 #include"hyb.hpp"
-#include"alps/numeric/vector_functions.hpp"
+#include<alps/numeric/vector_functions.hpp>
 
 // MOVE to alpscore
 template<typename T, typename T2>

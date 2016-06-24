@@ -35,15 +35,15 @@ void evaluate_basics(const alps::results_type<hybridization>::type &results,
                      const alps::parameters_type<hybridization>::type &parms,
                      alps::hdf5::archive &solver_output){
 
-  std::size_t n_orbitals=parms["N_ORBITALS"];
+  std::size_t n_orbitals=parms["FLAVORS"];
   double beta=parms["BETA"];
 
-  if(parms["TEXT_OUTPUT"]){
+  if(parms["cthyb.TEXT_OUTPUT"]){
     std::ofstream sim_file("simulation.dat");
     sim_file << "simulation details:" << std::endl;
     sim_file << "average sign: " << results["Sign"].mean<double>() << std::endl;
-    sim_file << "total (effective) number of sweeps, normalized by N_meas: " << results["Sign"].count()*(double)parms["N_MEAS"] << std::endl;
-    sim_file << "number thermalization sweeps: " << parms["THERMALIZATION"] << std::endl;
+    sim_file << "total (effective) number of sweeps, normalized by N_meas: " << results["Sign"].count()*(double)parms["cthyb.N_MEAS"] << std::endl;
+    sim_file << "number thermalization sweeps: " << parms["cthyb.THERMALIZATION"] << std::endl;
     sim_file << "inverse temperature: " << beta << std::endl;
     sim_file << "perturbation order:" << std::endl;
     for(std::size_t i=0;i<n_orbitals;++i){//replace Green function endpoints by corresponding densities
@@ -72,7 +72,7 @@ void evaluate_basics(const alps::results_type<hybridization>::type &results,
       std::stringstream density_name; density_name<<"density_"<<i;
       double density=results[density_name.str()].mean<double>();
       obs_file << "n" << i << "=" << density << ";" << std::endl;
-      if(parms["MEASURE_nn"]){
+      if(parms["cthyb.MEASURE_nn"]){
         for(std::size_t j=0;j<i;++j){
           std::stringstream nn_name; nn_name<<"nn_"<<i<<"_"<<j;
           double nn=results[nn_name.str()].mean<double>();
@@ -107,9 +107,9 @@ void evaluate_gtau(const alps::results_type<hybridization>::type &results,
                    const alps::parameters_type<hybridization>::type &parms,
                    alps::hdf5::archive &solver_output){
 
-  std::size_t N_t = parms["N_TAU"];
+  std::size_t N_t = parms["N"];
   double beta = parms["BETA"];
-  std::size_t n_orbitals = parms["N_ORBITALS"];
+  std::size_t n_orbitals = parms["FLAVORS"];
   std::size_t n_sites    = 1;
 
   //Imaginary time Green function
@@ -134,6 +134,9 @@ void evaluate_gtau(const alps::results_type<hybridization>::type &results,
   //store in hdf5
   G_tau.write_hdf5(solver_output, "/G_tau");
 
+  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF"))
+    write_Gtau_h5gf(G_tau, parms);
+
   //COVARIANCE
 /*
   for(std::size_t i=0; i<n_orbitals; i++){
@@ -152,7 +155,7 @@ void evaluate_gtau(const alps::results_type<hybridization>::type &results,
   }
 */
 
-  if(parms["TEXT_OUTPUT"]){
+  if(parms["cthyb.TEXT_OUTPUT"]){
     std::ofstream G_file("Gt.dat");
     for(std::size_t t=0;t<=N_t;++t){
       G_file<<beta*t/N_t;
@@ -170,11 +173,11 @@ void evaluate_freq(const alps::results_type<hybridization>::type &results,
                    const alps::parameters_type<hybridization>::type &parms,
                    alps::hdf5::archive &solver_output){
 
-  if(!(parms["MEASURE_freq"])) return;
+  if(!(parms["cthyb.MEASURE_freq"])) return;
   //evaluate Matsubara Green's function and self-energy
   double beta = parms["BETA"];
-  std::size_t N_w=parms["N_MATSUBARA"];
-  std::size_t n_orbitals=parms["N_ORBITALS"];
+  std::size_t N_w=parms["NMATSUBARA"];
+  std::size_t n_orbitals=parms["FLAVORS"];
   std::size_t n_sites = 1;
 
   matsubara_green_function_t G_omega(N_w, n_sites, n_orbitals);
@@ -202,6 +205,9 @@ void evaluate_freq(const alps::results_type<hybridization>::type &results,
   G_omega.write_hdf5(solver_output, "/G_omega");
   F_omega.write_hdf5(solver_output, "/F_omega");
   S_omega.write_hdf5(solver_output, "/S_omega");
+
+  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF"))
+    write_Gw_h5gf(G_omega, parms);
 
   std::ofstream Gw_file("Gw.dat");
   for(std::size_t n=0;n<N_w;++n){
@@ -239,12 +245,12 @@ void evaluate_legendre(const alps::results_type<hybridization>::type &results,
                        const alps::parameters_type<hybridization>::type &parms,
                        alps::hdf5::archive &solver_output){
 
-  if(!(parms["MEASURE_legendre"].as<bool>())) return;
+  if(!(parms["cthyb.MEASURE_legendre"].as<bool>())) return;
   double beta = parms["BETA"];
-  std::size_t N_l=parms["N_LEGENDRE"];
-  std::size_t N_w=parms["N_MATSUBARA"];
-  std::size_t N_t = parms["N_TAU"];
-  std::size_t n_orbitals = parms["N_ORBITALS"];
+  std::size_t N_l=parms["cthyb.N_LEGENDRE"];
+  std::size_t N_w=parms["NMATSUBARA"];
+  std::size_t N_t = parms["N"];
+  std::size_t n_orbitals = parms["FLAVORS"];
   std::size_t n_sites = 1;
 
   //Legendre Green function (evaluated in Matsubara)
@@ -306,7 +312,7 @@ void evaluate_legendre(const alps::results_type<hybridization>::type &results,
   G_l_tau.write_hdf5(solver_output, "/G_l_tau");
   F_l_tau.write_hdf5(solver_output, "/F_l_tau");
 
-  if(parms["TEXT_OUTPUT"]){
+  if(parms["cthyb.TEXT_OUTPUT"]){
     std::ofstream gc_str("Gl_conv.dat");
     std::ofstream fc_str("Fl_conv.dat");
     gc_str << "#lc";
@@ -383,10 +389,10 @@ void evaluate_nnt(const alps::results_type<hybridization>::type &results,
                   const alps::parameters_type<hybridization>::type &parms,
                   alps::hdf5::archive &solver_output){
 
-  if(!(parms["MEASURE_nnt"].as<bool>())) return;
+  if(!(parms["cthyb.MEASURE_nnt"].as<bool>())) return;
 
-  std::size_t N_nn=parms["N_nn"];
-  std::size_t n_orbitals=parms["N_ORBITALS"];
+  std::size_t N_nn=parms["cthyb.N_nn"];
+  std::size_t n_orbitals=parms["FLAVORS"];
   double beta=parms["BETA"];
 
   std::vector<std::vector<double> > nnt(n_orbitals*(n_orbitals+1)/2);
@@ -399,7 +405,7 @@ void evaluate_nnt(const alps::results_type<hybridization>::type &results,
     }
   }
 
-  if(parms["TEXT_OUTPUT"].as<bool>()){
+  if(parms["cthyb.TEXT_OUTPUT"].as<bool>()){
     std::ofstream nnt_file("nnt.dat");
     nnt_file << "#tau";
     for(std::size_t i=0;i<n_orbitals;++i)
@@ -424,10 +430,10 @@ void evaluate_nnw(const alps::results_type<hybridization>::type &results,
                   const alps::parameters_type<hybridization>::type &parms,
                   alps::hdf5::archive &solver_output){
 
-  if(!(parms["MEASURE_nnw"].as<bool>())) return;
+  if(!(parms["cthyb.MEASURE_nnw"].as<bool>())) return;
 
-  std::size_t N_W=parms["N_W"];
-  std::size_t n_orbitals=parms["N_ORBITALS"];
+  std::size_t N_W=parms["cthyb.N_W"];
+  std::size_t n_orbitals=parms["FLAVORS"];
   double beta=parms["BETA"];
 
   std::vector<std::vector<double> > nnw_re(n_orbitals*(n_orbitals+1)/2);
@@ -440,7 +446,7 @@ void evaluate_nnw(const alps::results_type<hybridization>::type &results,
     }
   }
 
-  if(parms["TEXT_OUTPUT"].as<bool>()){
+  if(parms["cthyb.TEXT_OUTPUT"].as<bool>()){
     std::ofstream nnw_file("nnw.dat");
     nnw_file << "#w";
     for(std::size_t i=0;i<n_orbitals;++i)
@@ -465,9 +471,9 @@ void evaluate_sector_statistics(const alps::results_type<hybridization>::type &r
                                 const alps::parameters_type<hybridization>::type &parms,
                                 alps::hdf5::archive &solver_output){
 
-  if(!(parms["MEASURE_sector_statistics"].as<bool>())) return;
+  if(!(parms["cthyb.MEASURE_sector_statistics"].as<bool>())) return;
 
-  std::size_t n_orbitals=parms["N_ORBITALS"];
+  std::size_t n_orbitals=parms["FLAVORS"];
   std::ofstream stat_file("sector_statistics.dat");
   stat_file << "#state |n_1={0,1} n_2={0,1} ...> n_i={0,1}: orbital i {empty,occupied}" << std::endl;
   stat_file << "#rel weight (in perc)" << std::endl;
@@ -492,17 +498,17 @@ void evaluate_2p(const alps::results_type<hybridization>::type &results,
                  alps::hdf5::archive &solver_output){
   //write two-particle functions to text file if desired
   //compute the vertex function if needed;
-  bool MEASURE_g2w=parms["MEASURE_g2w"];
-  bool MEASURE_h2w=parms["MEASURE_h2w"];
+  bool MEASURE_g2w=parms["cthyb.MEASURE_g2w"];
+  bool MEASURE_h2w=parms["cthyb.MEASURE_h2w"];
 
   if(!(MEASURE_g2w || MEASURE_h2w)) return;
 
-  //int N_w = parms["N_MATSUBARA"].as<bool>();
-  std::size_t N_W = parms["N_W"].as<int>();
-  std::size_t N_w2 = parms["N_w2"].as<int>();
-  std::size_t n_orbitals = parms["N_ORBITALS"]; //number of orbitals
-  bool text_output = parms["TEXT_OUTPUT"];
-  bool COMPUTE_VERTEX = parms["COMPUTE_VERTEX"];
+  //int N_w = parms["NMATSUBARA"].as<bool>();
+  std::size_t N_W = parms["cthyb.N_W"].as<int>();
+  std::size_t N_w2 = parms["cthyb.N_w2"].as<int>();
+  std::size_t n_orbitals = parms["FLAVORS"]; //number of orbitals
+  bool text_output = parms["cthyb.TEXT_OUTPUT"];
+  bool COMPUTE_VERTEX = parms["cthyb.COMPUTE_VERTEX"];
   double beta=parms["BETA"];
 
   std::ofstream g2w_str;
@@ -606,5 +612,37 @@ void evaluate_2p(const alps::results_type<hybridization>::type &results,
       }
     }//j
   }//i
+}
+
+
+void write_Gtau_h5gf(itime_green_function_t Gtau, const alps::parameters_type<hybridization>::type &parms) {
+  double beta = parms["BETA"];
+  int n_tau = parms["N"];
+  int n_orbitals = parms["FLAVORS"];
+  alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+
+  alps::gf::itime_sigma_gf_with_tail Gtau_h5gf(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta, n_tau), alps::gf::index_mesh(n_orbitals)));
+  for (alps::gf::itime_index i(0); i < Gtau_h5gf.mesh1().extent(); i++){
+    for (alps::gf::index s(0); s < Gtau_h5gf.mesh2().extent(); s++) {
+      Gtau_h5gf(i, s) = Gtau(i(), 0, 0, s());
+    }
+  }
+  Gtau_h5gf.save(ar, "/G_tau");
+}
+
+
+void write_Gw_h5gf(matsubara_green_function_t Gw, const alps::parameters_type<hybridization>::type &parms) {
+  double beta = parms["BETA"];
+  int n_matsubara = parms["N"];
+  int n_orbitals = parms["FLAVORS"];
+  alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+
+  alps::gf::omega_sigma_gf_with_tail Gw_h5df(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta, n_matsubara), alps::gf::index_mesh(n_orbitals)));
+  for (alps::gf::matsubara_index w(0); w < Gw_h5df.mesh1().extent(); w++) {
+    for (alps::gf::index s(0); s < Gw_h5df.mesh2().extent(); s++) {
+      Gw_h5df(w, s) = Gw(w(), 0, 0, s());
+    }
+  }
+  Gw_h5df.save(ar, "/G_omega");
 }
 
