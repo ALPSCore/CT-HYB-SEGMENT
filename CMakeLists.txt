@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 2.8.12)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # Not strictly necessary, but will create executables that are
 # aware of ALPSCore location
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -16,6 +17,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 find_package(ALPSCore COMPONENTS accumulators params mc hdf5 gf)
 find_package(LAPACK)
 find_package(MPI)
+find_package(NFFT)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DBOOST_DISABLE_ASSERTS -DNDEBUG")
 
@@ -32,13 +34,13 @@ set (ALPS_CTHYB_SOURCE
    hybfun.cpp
    hybretintfun.cpp
    hybmatrix.cpp
-   hybmatrix_ft.cpp
+   hybmatrix_nfft.cpp
    hybconfig.cpp
    hybupdates.cpp
    hybevaluate.cpp
    hybmeasurements.cpp)
 add_library(alps_hyb_exp ${ALPS_CTHYB_SOURCE})
-target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES} ${MPI_CXX_LIBRARIES})
+target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES} ${MPI_CXX_LIBRARIES} ${NFFT3_LIBRARIES})
 set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set(EXEC_NAME alps_cthyb)
