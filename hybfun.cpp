@@ -111,31 +111,29 @@ void hybfun::read_hybridization_from_h5gf(const alps::params &p) {
   alps::hdf5::archive ar(p["solver.INFILE_H5GF"], alps::hdf5::archive::READ);
   alps::gf::omega_sigma_gf_with_tail G0_omega(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta_, n_matsubara), alps::gf::index_mesh(n_orbitals)));
   alps::gf::omega_sigma_gf_with_tail Delta_w(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta_, n_matsubara), alps::gf::index_mesh(n_orbitals)));
-  alps::gf::itime_sigma_gf_with_tail Delta(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta_, n_tau), alps::gf::index_mesh(n_orbitals)));
+  alps::gf::itime_sigma_gf_with_tail Delta(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta_, n_tau+1), alps::gf::index_mesh(n_orbitals)));
   G0_omega.load(ar, "/G0");
+  std::cout<<"successfully loaded G0."<<std::endl;
+
   for (alps::gf::matsubara_index i(0); i<G0_omega.mesh1().extent(); ++i) {
     for (alps::gf::index s(0); s < G0_omega.mesh2().extent(); ++s) {
       std::complex<double> iw(0., (2 * i() + 1) * M_PI / beta_);
       Delta_w(i, s) = iw + mu - 1.0/G0_omega(i, s);
     }
   }
+  
+  //compute the tail of the hybridization function from the tail of the Green's function.
+  //use: Delta = Simplify[  i\[Omega] + \[Mu] - \[Epsilon] -  1/(1/i\[Omega] + c2/i\[Omega]^2 + c3/i\[Omega]^3 + c4/i\[Omega]^4)]
+  //to get: Series[Delta,{i\[Omega],Infinity,3}]=(c2-\[Epsilon]+\[Mu])+(-c2^2+c3)/i\[Omega]+(c2^3-2 c2 c3+c4)/i\[Omega]^2+(-c2^4+3 c2^2 c3-c3^2-2 c2 c4)/i\[Omega]^3+O[1/i\[Omega]]^4
+  //thus if we have only c2 and c3 we can get c1 of Delta, but we do need to have c3.
   typedef alps::gf::one_index_gf<double, alps::gf::index_mesh> density_matrix_type;
   density_matrix_type tail=density_matrix_type(alps::gf::index_mesh(2));
   tail.initialize();
-  double t = p["t"];
-  double tprime = p["tprime"];
-  int L = p["L"];
-  double e2 = 0.0;
-  for (int i = 0; i<L; i++) {
-    for (int j = 0; j<L; j++) {
-      double kx = i * M_PI * 2.0 / L;
-      double ky = j * M_PI * 2.0 / L;
-      double e = -2.0 * t * (cos(kx)+cos(ky)) - 4.0 * tprime * cos(kx) * cos(ky);
-      e2 += e*e / (L*L);
-    }
+  for (alps::gf::index s(0); s < G0_omega.mesh2().extent(); ++s) {
+    double gf_c2=G0_omega.tail(2)(s);
+    double gf_c3=G0_omega.tail(3)(s);
+    tail(s) = -gf_c2*gf_c2+gf_c3;
   }
-  tail(alps::gf::index(0)) = -e2;
-  tail(alps::gf::index(1)) = -e2;
   Delta_w.set_tail(1,tail);
   alps::gf::fourier_frequency_to_time(Delta_w, Delta);
   for (alps::gf::itime_index i(0); i<Delta.mesh1().extent(); ++i) {
@@ -144,9 +142,12 @@ void hybfun::read_hybridization_from_h5gf(const alps::params &p) {
     }
   }
 
-  alps::hdf5::archive test_ar("test.h5", "w");
-  Delta.save(test_ar, "/Delta_tau");
-  Delta_w.save(test_ar, "/Delta_omega");
+  {
+    std::ofstream Delta_text("/tmp/Delta.dat");
+    std::ofstream Deltaw_text("/tmp/Deltaw.dat");
+    Delta_text<<Delta;
+    Deltaw_text<<Delta_w;
+  }
 }
 
 std::ostream &operator<<(std::ostream &os, const hybfun &hyb){

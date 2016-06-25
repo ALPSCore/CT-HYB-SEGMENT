@@ -30,10 +30,9 @@
 #include <ctime>
 #include "hyb.hpp"
 #include "hybevaluate.hpp"
-//#include <alps/mc/parseargs.hpp>
+
 #ifdef ALPS_HAVE_MPI
 #include <alps/mc/mpiadapter.hpp>
-
 typedef alps::mcmpiadapter<hybridization> sim_type;
 #else
 typedef hybridization sim_type;
