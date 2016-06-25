@@ -31,8 +31,8 @@
 #include"hyb.hpp"
 #include"hybevaluate.hpp"
 
-void evaluate_basics(const alps::results_type<hybridization>::type &results,
-                     const alps::parameters_type<hybridization>::type &parms,
+void evaluate_basics(const alps::accumulators::result_set &results,
+                     const alps::params &parms,
                      alps::hdf5::archive &solver_output){
 
   std::size_t n_orbitals=parms["FLAVORS"];
@@ -103,8 +103,8 @@ void evaluate_basics(const alps::results_type<hybridization>::type &results,
 }
 
 
-void evaluate_gtau(const alps::results_type<hybridization>::type &results,
-                   const alps::parameters_type<hybridization>::type &parms,
+void evaluate_gtau(const alps::accumulators::result_set &results,
+                   const alps::params &parms,
                    alps::hdf5::archive &solver_output){
 
   std::size_t N_t = parms["N"];
@@ -134,26 +134,18 @@ void evaluate_gtau(const alps::results_type<hybridization>::type &results,
   //store in hdf5
   G_tau.write_hdf5(solver_output, "/G_tau");
 
-  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF"))
-    write_Gtau_h5gf(G_tau, parms);
-
-  //COVARIANCE
-/*
-  for(std::size_t i=0; i<n_orbitals; i++){
-    boost::numeric::ublas::matrix<double> cov(N_t, N_t);
-    std::stringstream g_name; g_name<<"g_"<<i;
-    cov=results[g_name.str()].covariance<std::vector<double> >(results[g_name.str()]);
-    std::vector<double> data(N_t*N_t);
-    for(std::size_t t1=0; t1<N_t; t1++)
-      for(std::size_t t2=0; t2<N_t; t2++)
-        data[t1*N_t+t2]=cov(t1,t2);
-
-    std::stringstream data_path;
-    data_path << "/G_tau/Green_"<<i<< "/covariance";
-
-    solver_output<<alps::make_pvp(data_path.str(), data);
+  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF")){
+    alps::gf::itime_sigma_gf_with_tail G_tau_h5gf=translate_Gt_to_h5gf(G_tau, parms);
+    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+    G_tau_h5gf.save(ar, "/G_omega");
+    if(!(parms["cthyb.MEASURE_freq"])){
+      throw std::logic_error("we did not measure in frequency. For the ALPS framework you need to add frequency measurement cthyb.MEASURE_freq");
+      std::size_t N_w=parms["NMATSUBARA"];
+      alps::gf::omega_sigma_gf_with_tail G_omega_h5gf(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta, N_w), alps::gf::index_mesh(n_orbitals)));
+      //alps::gf::fourier_time_to_frequency(G_tau_h5gf, G_omega_h5gf);
+      G_omega_h5gf.save(ar, "/G_omega");
+    }
   }
-*/
 
   if(parms["cthyb.TEXT_OUTPUT"]){
     std::ofstream G_file("Gt.dat");
@@ -169,8 +161,8 @@ void evaluate_gtau(const alps::results_type<hybridization>::type &results,
 }
 
 
-void evaluate_freq(const alps::results_type<hybridization>::type &results,
-                   const alps::parameters_type<hybridization>::type &parms,
+void evaluate_freq(const alps::accumulators::result_set &results,
+                   const alps::params &parms,
                    alps::hdf5::archive &solver_output){
 
   if(!(parms["cthyb.MEASURE_freq"])) return;
@@ -206,8 +198,10 @@ void evaluate_freq(const alps::results_type<hybridization>::type &results,
   F_omega.write_hdf5(solver_output, "/F_omega");
   S_omega.write_hdf5(solver_output, "/S_omega");
 
-  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF"))
-    write_Gw_h5gf(G_omega, parms);
+  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF")){
+    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+    translate_Gw_to_h5gf(G_omega, parms).save(ar, "/G_omega");
+  }
 
   std::ofstream Gw_file("Gw.dat");
   for(std::size_t n=0;n<N_w;++n){
@@ -241,8 +235,8 @@ void evaluate_freq(const alps::results_type<hybridization>::type &results,
 }
 
 
-void evaluate_legendre(const alps::results_type<hybridization>::type &results,
-                       const alps::parameters_type<hybridization>::type &parms,
+void evaluate_legendre(const alps::accumulators::result_set &results,
+                       const alps::params &parms,
                        alps::hdf5::archive &solver_output){
 
   if(!(parms["cthyb.MEASURE_legendre"].as<bool>())) return;
@@ -385,8 +379,8 @@ void evaluate_legendre(const alps::results_type<hybridization>::type &results,
 }
 
 
-void evaluate_nnt(const alps::results_type<hybridization>::type &results,
-                  const alps::parameters_type<hybridization>::type &parms,
+void evaluate_nnt(const alps::accumulators::result_set &results,
+                  const alps::params &parms,
                   alps::hdf5::archive &solver_output){
 
   if(!(parms["cthyb.MEASURE_nnt"].as<bool>())) return;
@@ -426,8 +420,8 @@ void evaluate_nnt(const alps::results_type<hybridization>::type &results,
 }
 
 
-void evaluate_nnw(const alps::results_type<hybridization>::type &results,
-                  const alps::parameters_type<hybridization>::type &parms,
+void evaluate_nnw(const alps::accumulators::result_set &results,
+                  const alps::params &parms,
                   alps::hdf5::archive &solver_output){
 
   if(!(parms["cthyb.MEASURE_nnw"].as<bool>())) return;
@@ -467,8 +461,8 @@ void evaluate_nnw(const alps::results_type<hybridization>::type &results,
 }
 
 
-void evaluate_sector_statistics(const alps::results_type<hybridization>::type &results,
-                                const alps::parameters_type<hybridization>::type &parms,
+void evaluate_sector_statistics(const alps::accumulators::result_set &results,
+                                const alps::params &parms,
                                 alps::hdf5::archive &solver_output){
 
   if(!(parms["cthyb.MEASURE_sector_statistics"].as<bool>())) return;
@@ -493,8 +487,8 @@ void evaluate_sector_statistics(const alps::results_type<hybridization>::type &r
 }
 
 
-void evaluate_2p(const alps::results_type<hybridization>::type &results,
-                 const alps::parameters_type<hybridization>::type &parms,
+void evaluate_2p(const alps::accumulators::result_set &results,
+                 const alps::params &parms,
                  alps::hdf5::archive &solver_output){
   //write two-particle functions to text file if desired
   //compute the vertex function if needed;
@@ -615,34 +609,42 @@ void evaluate_2p(const alps::results_type<hybridization>::type &results,
 }
 
 
-void write_Gtau_h5gf(itime_green_function_t Gtau, const alps::parameters_type<hybridization>::type &parms) {
+alps::gf::itime_sigma_gf_with_tail translate_Gt_to_h5gf(itime_green_function_t Gtau, const alps::params &parms) {
   double beta = parms["BETA"];
   int n_tau = parms["N"];
   int n_orbitals = parms["FLAVORS"];
-  alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
 
   alps::gf::itime_sigma_gf_with_tail Gtau_h5gf(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta, n_tau), alps::gf::index_mesh(n_orbitals)));
-  for (alps::gf::itime_index i(0); i < Gtau_h5gf.mesh1().extent(); i++){
-    for (alps::gf::index s(0); s < Gtau_h5gf.mesh2().extent(); s++) {
+
+  typedef alps::gf::one_index_gf<double, alps::gf::index_mesh> density_matrix_type;
+  density_matrix_type tail=density_matrix_type(alps::gf::index_mesh(n_orbitals));
+  tail.initialize();
+  for (alps::gf::index s(0); s < Gtau_h5gf.mesh2().extent(); s++) {
+    for (alps::gf::itime_index i(0); i < Gtau_h5gf.mesh1().extent(); i++){
       Gtau_h5gf(i, s) = Gtau(i(), 0, 0, s());
     }
+    tail(s) = 1.;
   }
-  Gtau_h5gf.save(ar, "/G_tau");
+  Gtau_h5gf.set_tail(1, tail);
+  return Gtau_h5gf;
 }
 
-
-void write_Gw_h5gf(matsubara_green_function_t Gw, const alps::parameters_type<hybridization>::type &parms) {
+alps::gf::omega_sigma_gf_with_tail translate_Gw_to_h5gf(matsubara_green_function_t Gw,const alps::params &parms) {
   double beta = parms["BETA"];
   int n_matsubara = parms["N"];
   int n_orbitals = parms["FLAVORS"];
-  alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
 
-  alps::gf::omega_sigma_gf_with_tail Gw_h5df(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta, n_matsubara), alps::gf::index_mesh(n_orbitals)));
-  for (alps::gf::matsubara_index w(0); w < Gw_h5df.mesh1().extent(); w++) {
-    for (alps::gf::index s(0); s < Gw_h5df.mesh2().extent(); s++) {
-      Gw_h5df(w, s) = Gw(w(), 0, 0, s());
+  alps::gf::omega_sigma_gf_with_tail Gw_h5gf(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta, n_matsubara), alps::gf::index_mesh(n_orbitals)));
+  typedef alps::gf::one_index_gf<double, alps::gf::index_mesh> density_matrix_type;
+  density_matrix_type tail=density_matrix_type(alps::gf::index_mesh(n_orbitals));
+  tail.initialize();
+  for (alps::gf::index s(0); s < Gw_h5gf.mesh2().extent(); s++) {
+    for (alps::gf::matsubara_index w(0); w < Gw_h5gf.mesh1().extent(); w++) {
+      Gw_h5gf(w, s) = Gw(w(), 0, 0, s());
     }
+    tail(s) = 1.;
   }
-  Gw_h5df.save(ar, "/G_omega");
+  Gw_h5gf.set_tail(1, tail);
+  return Gw_h5gf;
 }
 

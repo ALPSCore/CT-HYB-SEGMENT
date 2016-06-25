@@ -60,7 +60,7 @@ public:
   double fraction_completed() const {return std::max((sweeps-thermalization_sweeps)/(double)total_sweeps,0.);}
   static void define_parameters(alps::params &parms);
   friend std::ostream &operator<<(std::ostream &os, const hybridization &hyb);
-
+  virtual ~hybridization(){}
 private:
   bool VERBOSE;
   int crank;

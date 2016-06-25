@@ -31,16 +31,17 @@
 #include <boost/math/special_functions/bessel.hpp>
 #include <alps/gf/gf.hpp>
 #include <alps/gf/tail.hpp>
+#include <alps/gf/fourier.hpp>
 #include <alps/mc/api.hpp>
 
-void evaluate_basics(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
-void evaluate_gtau(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
-void evaluate_freq(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
-void evaluate_legendre(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
-void evaluate_nnt(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
-void evaluate_nnw(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
-void evaluate_sector_statistics(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
-void evaluate_2p(const alps::results_type<hybridization>::type &results, const alps::parameters_type<hybridization>::type &parms, alps::hdf5::archive &solver_output);
+void evaluate_basics(const alps::accumulators::result_set &results, const alps::params &parms, alps::hdf5::archive &solver_output);
+void evaluate_gtau(const alps::accumulators::result_set &results, const alps::params &parms, alps::hdf5::archive &solver_output);
+void evaluate_freq(const alps::accumulators::result_set &results, const alps::params &parms, alps::hdf5::archive &solver_output);
+void evaluate_legendre(const alps::accumulators::result_set &results, const alps::params &parms, alps::hdf5::archive &solver_output);
+void evaluate_nnt(const alps::accumulators::result_set &results, const alps::params &parms, alps::hdf5::archive &solver_output);
+void evaluate_nnw(const alps::accumulators::result_set &results, const alps::params &parms, alps::hdf5::archive &solver_output);
+void evaluate_sector_statistics(const alps::accumulators::result_set &results, const alps::params &parms, alps::hdf5::archive &solver_output);
+void evaluate_2p(const alps::accumulators::result_set &results, const alps::params &parms, alps::hdf5::archive &solver_output);
 
 inline std::complex<double> t(int n, int l){//transformation matrix from Legendre to Matsubara basis
   std::complex<double> i_c(0., 1.);
@@ -53,7 +54,7 @@ struct jackson{//the Jackson kernel
   int N_l;
 };
 
-void write_Gtau_h5gf(itime_green_function_t Gtau, const alps::parameters_type<hybridization>::type &parms);
-void write_Gw_h5gf(matsubara_green_function_t Gw, const alps::parameters_type<hybridization>::type &parms);
+alps::gf::omega_sigma_gf_with_tail translate_Gw_to_h5gf(matsubara_green_function_t Gw,const alps::params &parms);
+alps::gf::itime_sigma_gf_with_tail translate_Gt_to_h5gf(itime_green_function_t Gtau, const alps::params &parms);
 #endif
 
