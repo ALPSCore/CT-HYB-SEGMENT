@@ -33,6 +33,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstring>
+#include <cassert>
 
 
 #ifdef USE_MPI

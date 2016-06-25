@@ -133,6 +133,7 @@ void hybfun::read_hybridization_from_h5gf(const alps::params &p) {
     double gf_c2=G0_omega.tail(2)(s);
     double gf_c3=G0_omega.tail(3)(s);
     tail(s) = -gf_c2*gf_c2+gf_c3;
+    std::cout<<" spin: "<<s()<<" tail1: "<<G0_omega.tail(1)(s)<<" tail2: "<<G0_omega.tail(2)(s)<<" tail3: "<<G0_omega.tail(3)(s)<<" Delta tail: "<<tail(s)<<std::endl;
   }
   Delta_w.set_tail(1,tail);
   alps::gf::fourier_frequency_to_time(Delta_w, Delta);
