@@ -25,6 +25,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
     ${MPI_CXX_INCLUDE_PATH}
+    ${NFFT3_INCLUDE_DIR}
 )
 
 set (ALPS_CTHYB_SOURCE
