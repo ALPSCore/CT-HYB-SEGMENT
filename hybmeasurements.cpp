@@ -31,36 +31,12 @@
 #include"hyb.hpp"
 #include<alps/numeric/vector_functions.hpp>
 
-// MOVE to alpscore
-template<typename T, typename T2>
-std::vector<T> operator / (std::vector<T> lhs, T2 x) {
-  T BOOST_LOCAL_FUNCTION_TPL(bind x, T l) { return l/x; } BOOST_LOCAL_FUNCTION_NAME_TPL(div1)
-  std::vector<T> out(lhs);
-  std::transform(lhs.begin(), lhs.end(), out.begin(), div1);
-  return lhs;
-}
-
-template<typename T, typename T2>
-std::vector<T> operator * (std::vector<T> lhs, T2 x) {
-  T BOOST_LOCAL_FUNCTION_TPL(bind x, T l) { return l*x; } BOOST_LOCAL_FUNCTION_NAME_TPL(div1)
-    std::vector<T> out(lhs);
-    std::transform(lhs.begin(), lhs.end(), out.begin(), div1);
-    return lhs;
-  }
-
-  template<typename T, typename T2>
-  std::vector<T> operator * (T2 x, std::vector<T> y){return y*x;}
-
 using alps::accumulators::max_bin_number;
 
 typedef alps::accumulators::FullBinningAccumulator<std::vector<double> > vec_obs_t;
 typedef alps::accumulators::FullBinningAccumulator<double> obs_t;
 typedef alps::accumulators::MeanAccumulator<std::vector<double> > simple_vec_t;
 
-//using namespace alps::numeric;
-//typedef alps::accumulators::RealVectorObservable vec_obs_t;
-//typedef alps::accumulators::RealVectorObservable vec_obs_t;
-//typedef alps::accumulators::RealObservable obs_t;
 
 void hybridization::create_measurements(){//called once in the constructor
 
@@ -239,6 +215,7 @@ void hybridization::measure_order(){
 }
 
 void hybridization::accumulate_order(){
+  using alps::numeric::operator/;
   measurements["order_histogram_total"]<<(order_histogram_total/(double)meas_count);
   memset(&(order_histogram_total[0]), 0, sizeof(double)*order_histogram_total.size());
   measurements["Sign"]<<(sgn/(double)meas_count); sgn=0.;
@@ -252,14 +229,15 @@ void hybridization::accumulate_order(){
 
 //measure the Green's function
 void hybridization::measure_G(){
-  //delegate the acutal measurement to the hybridization configuration
+  //delegate the actual measurement to the hybridization configuration
   hyb_config.measure_G(G, sign);
   local_config.measure_density(densities, sign);
 }
 
 void hybridization::accumulate_G(){
+  using alps::numeric::operator*;
   for(std::size_t i=0;i<n_orbitals;++i){
-    measurements[g_names[i]]<<(N_t*G[i]/(beta*beta*meas_count));
+    measurements[g_names[i]]<<(G[i]*(N_t/(beta*beta*meas_count)));
     measurements[density_names[i]]<<(densities[i]/(double)meas_count);
     memset(&(G[i][0]), 0, sizeof(double)*G[i].size());
     densities[i]=0;
