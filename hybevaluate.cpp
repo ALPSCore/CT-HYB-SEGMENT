@@ -137,7 +137,7 @@ void evaluate_gtau(const alps::accumulators::result_set &results,
   if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF")){
     alps::gf::itime_sigma_gf_with_tail G_tau_h5gf=translate_Gt_to_h5gf(G_tau, parms);
     alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
-    G_tau_h5gf.save(ar, "/G_omega");
+    G_tau_h5gf.save(ar, "/G_tau");
     if(!(parms["cthyb.MEASURE_freq"])){
       throw std::logic_error("we did not measure in frequency. For the ALPS framework you need to add frequency measurement cthyb.MEASURE_freq");
       std::size_t N_w=parms["NMATSUBARA"];
