@@ -65,12 +65,13 @@ void hybridization::update(){
     nsweeps = ++sweeps;
 
     //these are cheap measurements that should be done every time.
-    if(is_thermalized()){
-      measure_order();
-      measure_G();
-      meas_count++;
-    }
+
   }//N_meas
+  if(is_thermalized()){
+//      measure_order();
+//      measure_G();
+    meas_count++;
+  }
 
   if(VERBOSE && sweeps%10000==0 && crank==0) {
     int tot_acc=0,cur_prec = std::cout.precision();

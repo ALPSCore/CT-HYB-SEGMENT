@@ -32,24 +32,26 @@
 #include<alps/numeric/vector_functions.hpp>
 
 // MOVE to alpscore
-template<typename T, typename T2>
-std::vector<T> operator / (std::vector<T> lhs, T2 x) {
-  T BOOST_LOCAL_FUNCTION_TPL(bind x, T l) { return l/x; } BOOST_LOCAL_FUNCTION_NAME_TPL(div1)
-  std::vector<T> out(lhs);
-  std::transform(lhs.begin(), lhs.end(), out.begin(), div1);
-  return lhs;
-}
-
-template<typename T, typename T2>
-std::vector<T> operator * (std::vector<T> lhs, T2 x) {
-  T BOOST_LOCAL_FUNCTION_TPL(bind x, T l) { return l*x; } BOOST_LOCAL_FUNCTION_NAME_TPL(div1)
-    std::vector<T> out(lhs);
-    std::transform(lhs.begin(), lhs.end(), out.begin(), div1);
-    return lhs;
-  }
-
-  template<typename T, typename T2>
-  std::vector<T> operator * (T2 x, std::vector<T> y){return y*x;}
+//template<typename T, typename T2>
+//std::vector<T> operator / (std::vector<T> lhs, T2 x) {
+//  T BOOST_LOCAL_FUNCTION_TPL(bind x, T l) { return l/x; } BOOST_LOCAL_FUNCTION_NAME_TPL(div1)
+//  std::vector<T> out(lhs);
+//  std::transform(lhs.begin(), lhs.end(), out.begin(), div1);
+//  return lhs;
+//}
+//
+//template<typename T, typename T2>
+//std::vector<T> operator * (std::vector<T> lhs, T2 x) {
+//  T BOOST_LOCAL_FUNCTION_TPL(bind x, T l) { return l*x; } BOOST_LOCAL_FUNCTION_NAME_TPL(div1)
+//    std::vector<T> out(lhs);
+//    std::transform(lhs.begin(), lhs.end(), out.begin(), div1);
+//    return lhs;
+//  }
+//
+//  template<typename T, typename T2>
+//  std::vector<T> operator * (T2 x, std::vector<T> y){return y*x;}
+using alps::numeric::operator*;
+using alps::numeric::operator/;
 
 using alps::accumulators::max_bin_number;
 
@@ -194,6 +196,8 @@ void hybridization::create_measurements(){//called once in the constructor
 void hybridization::measure(){
   if(!is_thermalized()) return;
 
+  measure_order();
+  measure_G();
   accumulate_order();
   accumulate_G();
   meas_count=0; //reset
@@ -259,7 +263,7 @@ void hybridization::measure_G(){
 
 void hybridization::accumulate_G(){
   for(std::size_t i=0;i<n_orbitals;++i){
-    measurements[g_names[i]]<<(N_t*G[i]/(beta*beta*meas_count));
+    measurements[g_names[i]]<<((N_t/(beta*beta*meas_count))*G[i]);
     measurements[density_names[i]]<<(densities[i]/(double)meas_count);
     memset(&(G[i][0]), 0, sizeof(double)*G[i].size());
     densities[i]=0;
