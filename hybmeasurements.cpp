@@ -170,8 +170,6 @@ void hybridization::create_measurements(){//called once in the constructor
 void hybridization::measure(){
   if(!is_thermalized()) return;
 
-  measure_order();
-  measure_G();
   accumulate_order();
   accumulate_G();
   meas_count=0; //reset
