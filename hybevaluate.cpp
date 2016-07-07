@@ -206,7 +206,7 @@ void evaluate_freq(const alps::accumulators::result_set &results,
     G0_omega.load(ar_in, "/G0");
     for (alps::gf::matsubara_index i(0); i<G0_omega.mesh1().extent(); ++i) {
       for (alps::gf::index s(0); s < G0_omega.mesh2().extent(); ++s) {
-        G_omega(i(),0,0,s()) = 1.0 / (1.0 / G0_omega(i,s) + S_omega(i(),0,0,s()));
+        G_omega(i(),0,0,s()) = 1.0 / (1.0 / G0_omega(i,s) - S_omega(i(),0,0,s()));
       }
     }
     translate_Gw_to_h5gf(G_omega, parms).save(ar, "/G_omega");
