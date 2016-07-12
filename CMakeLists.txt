@@ -19,7 +19,7 @@ find_package(LAPACK)
 find_package(MPI)
 find_package(NFFT)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DBOOST_DISABLE_ASSERTS -DNDEBUG")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_DISABLE_ASSERTS -DNDEBUG")
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
