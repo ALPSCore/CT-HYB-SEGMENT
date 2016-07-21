@@ -509,7 +509,7 @@ void evaluate_2p(const alps::accumulators::result_set &results,
 
   //int N_w = parms["NMATSUBARA"].as<bool>();
   std::size_t N_W = parms["cthyb.N_W"].as<int>();
-  std::size_t N_w2 = parms["cthyb.N_w2"].as<int>();
+  std::size_t N_w2 = 2*parms["cthyb.N_w2"].as<int>();
   std::size_t n_orbitals = parms["FLAVORS"]; //number of orbitals
   bool text_output = parms["cthyb.TEXT_OUTPUT"];
   bool COMPUTE_VERTEX = parms["cthyb.COMPUTE_VERTEX"];

@@ -78,7 +78,7 @@ hybridization::hybridization(const alps::params &parms, int crank_)
   N_l = parms["cthyb.N_LEGENDRE"];                                                     //number of Legendre polynomial coefficients
   N_t = parms["N"];                                                            //number of tau slices for gt
   N_nn = parms["cthyb.N_nn"];                                                          //number of tau-points on which density density correlator is measured
-  N_w2 = parms["cthyb.N_w2"];                                                          //number of Matsubara frequency points for two-particle measurements
+  N_w2 = 2 * parms["cthyb.N_w2"].as<int>();                                                          //number of fermionic Matsubara frequency points for two-particle measurements
   N_W = parms["cthyb.N_W"];                                                            //number of bosonic Matsubara frequency points for two-particle measurements
   N_w_aux = (N_w2+N_W>1 ? N_w2+N_W-1 : 0);                                         //number of Matsubara frequency points for the measurment of M(w1,w2)
 
@@ -116,13 +116,13 @@ void hybridization::sanity_check(const alps::params &parms){
   if(parms["cthyb.MEASURE_g2w"] || parms["cthyb.MEASURE_h2w"] ){
     if(!parms.exists("cthyb.N_w2") ) throw std::invalid_argument("please specify the parameter N_w2 for # of fermionic Matsubara frequencies for two-particle functions");
     if(!parms.exists("cthyb.N_W") ) throw std::invalid_argument("please specify the parameter N_W for # of bosonic Matsubara frequencies for two-particle functions");
-    if((int)parms["cthyb.N_w2"]%2!=0) throw std::invalid_argument("parameter N_w2 must be even");
+//    if((int)parms["cthyb.N_w2"]%2!=0) throw std::invalid_argument("parameter N_w2 must be even");
   }
   if(parms["cthyb.COMPUTE_VERTEX"]){
     if( !(parms["cthyb.MEASURE_freq"]) ) throw std::invalid_argument("frequency measurement is required for computing the vertex, please set MEASURE_freq=1");
 
     if(! (parms["cthyb.MEASURE_g2w"] || parms["cthyb.MEASURE_h2w"] ) ) throw std::invalid_argument("at least one two-particle quantity is required for computing the vertex, set MEASURE_g2w=1 or MEASURE_h2w=1");
-    if((int) parms["NMATSUBARA"] < ((int)parms["cthyb.N_w2"]/2 + (int)parms["cthyb.N_W"] - 1) ) throw std::invalid_argument("for computing the vertex, NMATSUBARA must be at least N_w2/2+N_W-1");
+    if((int) parms["NMATSUBARA"] < ((int)parms["cthyb.N_w2"] + (int)parms["cthyb.N_W"] - 1) ) throw std::invalid_argument("for computing the vertex, NMATSUBARA must be at least N_w2/2+N_W-1");
   }
     VERBOSE = (parms["VERBOSE"]);
 
@@ -206,9 +206,9 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<int >("cthyb.N_MEAS","number of updates per measurement")
         .define<int >("FLAVORS","number of spin-orbitals (sometimes called flavors)")
         .define<int >("N","number of imaginary time discretization points")
-        .define<int >("cthyb.N_W",0,"number of bosonic Matsubara frequencies")
+        .define<int >("cthyb.N_W",0,"number of bosonic Matsubara frequencies for the two-particle measurement (0 ... N_W)")
         .define<int >("cthyb.N_nn",0,"number of points for the measurement of the density density correlator")
-        .define<int >("cthyb.N_w2",0,"number of fermionic frequencies for the two-particle measurement")
+        .define<int >("cthyb.N_w2",0,"number of fermionic frequencies for the two-particle measurement (-N_w2 ... N_w2-1)")
         .define<std::string>("cthyb.RET_INT_K","file with the retarted interaction information. See doc for format.")
         .define<bool>("cthyb.SPINFLIP",false,"TODO: UNDERSTAND THIS PARAMETER")
         .define<unsigned long>("cthyb.SWEEPS","total number of Monte Carlo sweeps to be done")
