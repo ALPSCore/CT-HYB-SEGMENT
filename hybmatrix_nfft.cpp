@@ -204,7 +204,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
       nfft_adjoint(&nfft_cdagger);
       for(int m=0;m<n_omega_meas;++m){
         std::complex<double> prefactor=std::exp(std::complex<double>(0.,-M_PI*freq[m]));
-        M_tilde_im[i*n_omega_meas+m]=std::complex<double>(nfft_cdagger.f_hat[m*2][0], nfft_cdagger.f_hat[m*2][1])*prefactor;
+        M_tilde_im[i*n_omega_meas+m]=std::complex<double>(nfft_cdagger.f_hat[m+n_omega_meas-N_w2/2][0], nfft_cdagger.f_hat[m+n_omega_meas-N_w2/2][1])*prefactor;
       }
     }
 
@@ -224,7 +224,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
       nfft_adjoint(&nfft_c);
       for(int n=0;n<n_omega_meas;++n){
         std::complex<double> prefactor=std::exp(std::complex<double>(0., M_PI*freq[n]));
-        G2w[n*n_omega_meas+m]=std::complex<double>(nfft_c.f_hat[n*2][0], nfft_c.f_hat[n*2][1])*prefactor;
+        G2w[n*n_omega_meas+m]=std::complex<double>(nfft_c.f_hat[n+n_omega_meas-N_w2/2][0], nfft_c.f_hat[n+n_omega_meas-N_w2/2][1])*prefactor;
       }
     }
   }
@@ -238,7 +238,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
       nfft_adjoint(&nfft_cdagger);
       for(int m=0;m<n_omega_meas;++m){
         std::complex<double> prefactor=std::exp(std::complex<double>(0.,-M_PI*freq[m]));
-        M_tilde_im[i*n_omega_meas+m]=std::complex<double>(nfft_cdagger.f_hat[m*2][0], nfft_cdagger.f_hat[m*2][1])*prefactor;
+        M_tilde_im[i*n_omega_meas+m]=std::complex<double>(nfft_cdagger.f_hat[m+n_omega_meas-N_w2/2][0], nfft_cdagger.f_hat[m+n_omega_meas-N_w2/2][1])*prefactor;
       }
     }
     //second preproc step for F
@@ -257,7 +257,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
       nfft_adjoint(&nfft_c);
       for(int n=0;n<n_omega_meas;++n){
         std::complex<double> prefactor=std::exp(std::complex<double>(0., M_PI*freq[n]));
-        F2w[n*n_omega_meas+m]=std::complex<double>(nfft_c.f_hat[n*2][0], nfft_c.f_hat[n*2][1])*prefactor;
+        F2w[n*n_omega_meas+m]=std::complex<double>(nfft_c.f_hat[n+n_omega_meas-N_w2/2][0], nfft_c.f_hat[n+n_omega_meas-N_w2/2][1])*prefactor;
       }
     }
   }
