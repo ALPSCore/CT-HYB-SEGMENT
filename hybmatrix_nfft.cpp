@@ -184,7 +184,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
   std::vector<std::complex<double> > coeff_F_ij(size()*size(), 0.);
   std::vector<std::complex<double> > coeff_im(size()*n_omega_meas, 0.);
 
-  std::vector<int> freq(n_omega_meas); for(int i=0;i<n_omega_meas;++i) freq[i]=i-n_omega_meas/2;
+  std::vector<int> freq(n_omega_meas); for(int i=0;i<n_omega_meas;++i) freq[i]=i-n_omega_meas;
 
   //first preproc step
   for(int i=0;i<size();++i){
