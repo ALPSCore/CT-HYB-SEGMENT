@@ -197,7 +197,7 @@ void hybridization::define_parameters(parameters_type & parameters) {
         .define<bool>("cthyb.MEASURE_nnw",false, "measure density-density correlation functions in frequency domain")
         .define<bool>("cthyb.MEASURE_sector_statistics",false, "measure sector statistics")
         .define<bool>("cthyb.MEASURE_time",false, "measure in the time domain")
-        .define<double>("MU", "chemical potential / orbital energy values")
+        .define<double>("MU", "chemical potential / orbital energy values") //!TODO: document the shift by U/2
         .define<std::string>("MU_VECTOR", "file name for file with chemical potential / orbital energy values")
         .define<bool>("MU_IN_HDF5", false,"true if the file MU_VECTOR points to a hdf5 file")
         .define<int >("cthyb.N_HISTOGRAM_ORDERS",200, "orders for the histograms of probability per order")
