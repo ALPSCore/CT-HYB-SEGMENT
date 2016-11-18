@@ -161,8 +161,8 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
   nfft_plan nfft_cdagger;
 
   // init a one dimensional plan
-  nfft_init_1d(&nfft_c,n_omega_meas, size());
-  nfft_init_1d(&nfft_cdagger,n_omega_meas, size());
+  nfft_init_1d(&nfft_c,n_omega_meas*2, size());
+  nfft_init_1d(&nfft_cdagger,n_omega_meas*2, size());
 
   // init the nonequidistant times
   for(int i=0; i<size();++i){
@@ -184,7 +184,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
   std::vector<std::complex<double> > coeff_F_ij(size()*size(), 0.);
   std::vector<std::complex<double> > coeff_im(size()*n_omega_meas, 0.);
 
-  std::vector<int> freq(n_omega_meas); for(int i=0;i<n_omega_meas;++i) freq[i]=i-n_omega_meas/2;
+  std::vector<int> freq(n_omega_meas); for(int i=0;i<n_omega_meas;++i) freq[i]=i-n_omega_meas;
 
   //first preproc step
   for(int i=0;i<size();++i){
@@ -204,7 +204,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
       nfft_adjoint(&nfft_cdagger);
       for(int m=0;m<n_omega_meas;++m){
         std::complex<double> prefactor=std::exp(std::complex<double>(0.,-M_PI*freq[m]));
-        M_tilde_im[i*n_omega_meas+m]=std::complex<double>(nfft_cdagger.f_hat[m][0], nfft_cdagger.f_hat[m][1])*prefactor;
+        M_tilde_im[i*n_omega_meas+m]=std::complex<double>(nfft_cdagger.f_hat[m+n_omega_meas-N_w2/2][0], nfft_cdagger.f_hat[m+n_omega_meas-N_w2/2][1])*prefactor;
       }
     }
 
@@ -224,7 +224,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
       nfft_adjoint(&nfft_c);
       for(int n=0;n<n_omega_meas;++n){
         std::complex<double> prefactor=std::exp(std::complex<double>(0., M_PI*freq[n]));
-        G2w[n*n_omega_meas+m]=std::complex<double>(nfft_c.f_hat[n][0], nfft_c.f_hat[n][1])*prefactor;
+        G2w[n*n_omega_meas+m]=std::complex<double>(nfft_c.f_hat[n+n_omega_meas-N_w2/2][0], nfft_c.f_hat[n+n_omega_meas-N_w2/2][1])*prefactor;
       }
     }
   }
@@ -238,7 +238,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
       nfft_adjoint(&nfft_cdagger);
       for(int m=0;m<n_omega_meas;++m){
         std::complex<double> prefactor=std::exp(std::complex<double>(0.,-M_PI*freq[m]));
-        M_tilde_im[i*n_omega_meas+m]=std::complex<double>(nfft_cdagger.f_hat[m][0], nfft_cdagger.f_hat[m][1])*prefactor;
+        M_tilde_im[i*n_omega_meas+m]=std::complex<double>(nfft_cdagger.f_hat[m+n_omega_meas-N_w2/2][0], nfft_cdagger.f_hat[m+n_omega_meas-N_w2/2][1])*prefactor;
       }
     }
     //second preproc step for F
@@ -257,7 +257,7 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
       nfft_adjoint(&nfft_c);
       for(int n=0;n<n_omega_meas;++n){
         std::complex<double> prefactor=std::exp(std::complex<double>(0., M_PI*freq[n]));
-        F2w[n*n_omega_meas+m]=std::complex<double>(nfft_c.f_hat[n][0], nfft_c.f_hat[n][1])*prefactor;
+        F2w[n*n_omega_meas+m]=std::complex<double>(nfft_c.f_hat[n+n_omega_meas-N_w2/2][0], nfft_c.f_hat[n+n_omega_meas-N_w2/2][1])*prefactor;
       }
     }
   }
