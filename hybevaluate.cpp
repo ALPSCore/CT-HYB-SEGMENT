@@ -248,8 +248,8 @@ void evaluate_freq(const alps::accumulators::result_set &results,
 void evaluate_legendre(const alps::accumulators::result_set &results,
                        const alps::params &parms,
                        alps::hdf5::archive &solver_output){
-
   if(!(parms["cthyb.MEASURE_legendre"].as<bool>())) return;
+  std::cout<<"evaluating legendre polynomial results"<<std::endl;
   double beta = parms["BETA"];
   std::size_t N_l=parms["cthyb.N_LEGENDRE"];
   std::size_t N_w=parms["NMATSUBARA"];
@@ -384,6 +384,13 @@ void evaluate_legendre(const alps::accumulators::result_set &results,
       Sw_file<<std::endl;
     }
     Sw_file.close();
+  }
+
+  //overwriting G(tau) and G(omega) in the cthyb framework with those from the legendre polys
+  if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF")){
+    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+    translate_Gw_to_h5gf(G_l_omega, parms).save(ar, "/G_omega");
+    translate_Gt_to_h5gf(G_l_tau  , parms).save(ar, "/G_tau");
   }
 
 }
@@ -624,7 +631,7 @@ alps::gf::itime_sigma_gf_with_tail translate_Gt_to_h5gf(itime_green_function_t G
   int n_tau = parms["N"];
   int n_orbitals = parms["FLAVORS"];
 
-  alps::gf::itime_sigma_gf_with_tail Gtau_h5gf(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta, n_tau), alps::gf::index_mesh(n_orbitals)));
+  alps::gf::itime_sigma_gf_with_tail Gtau_h5gf(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta, n_tau+1), alps::gf::index_mesh(n_orbitals)));
 
   typedef alps::gf::one_index_gf<double, alps::gf::index_mesh> density_matrix_type;
   density_matrix_type tail=density_matrix_type(alps::gf::index_mesh(n_orbitals));
