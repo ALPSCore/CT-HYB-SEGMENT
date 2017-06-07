@@ -211,7 +211,9 @@ std::ostream &operator<<(std::ostream &os, const hybmatrix &hyb_mat){
   return os;
 }
 void hybmatrix::rebuild_hyb_matrix(int orbital, const hybfun &Delta){
-  blas_matrix bup(*this);
+  //the following line is redundant
+  //blas_matrix bup(*this);
+  
   //build the matrix inverse:
   for(hyb_map_t::const_iterator it_start=c_index_map_.begin();it_start != c_index_map_.end();++it_start){
     for(hyb_map_t::const_iterator it_end=cdagger_index_map_.begin();it_end != cdagger_index_map_.end();++it_end){
