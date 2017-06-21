@@ -38,7 +38,7 @@ interaction_matrix::interaction_matrix(const alps::params &p){
     if(p.exists("U") && !global_mpi_rank){ std::cout << "Warning::parameter U_MATRIX exists, ignoring parameter U" << std::flush << std::endl; };
     std::string ufilename=p["U_MATRIX"];
     if(p.exists("UMATRIX_IN_HDF5") && p["UMATRIX_IN_HDF5"]){//attempt to read from h5 archive
-      alps::hdf5::archive ar(ufilename, alps::hdf5::archive::READ);
+      alps::hdf5::archive ar(ufilename, "r");
       ar>>alps::make_pvp("/Umatrix",val_);
     }
     else{//read from text file

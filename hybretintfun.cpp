@@ -61,7 +61,7 @@ void ret_int_fun::read_interaction_K_function(const alps::params &p){
   if(!p.exists("cthyb.RET_INT_K")) throw(std::invalid_argument(std::string("Parameter RET_INT_K missing, filename for retarded interaction function not specified.")));
   std::string fname=p["cthyb.RET_INT_K"];
   if(p.exists("cthyb.K_IN_HDF5") && p["cthyb.K_IN_HDF5"]){//attempt to read from h5 archive
-    alps::hdf5::archive ar(fname, alps::hdf5::archive::READ);
+    alps::hdf5::archive ar(fname, "r");
     std::vector<double> tmp(ntime());
     ar>>alps::make_pvp("/Ret_int_K",tmp);
       for(std::size_t i=0; i<ntime(); i++)

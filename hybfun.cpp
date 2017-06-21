@@ -66,7 +66,7 @@ void hybfun::read_hybridization_function(const alps::params &p){
   }
   std::string fname=p["cthyb.DELTA"];
   if(p.exists("cthyb.DELTA_IN_HDF5") && p["cthyb.DELTA_IN_HDF5"]){//attempt to read from h5 archive
-    alps::hdf5::archive ar(fname, alps::hdf5::archive::READ);
+    alps::hdf5::archive ar(fname, "r");
     if(p.exists("cthyb.DMFT_FRAMEWORK") && p["cthyb.DMFT_FRAMEWORK"]){//read in as green_function
       read_hdf5(ar,"/Delta");
     }
@@ -108,7 +108,7 @@ void hybfun::read_hybridization_from_h5gf(const alps::params &p) {
   int n_tau = p["N"];
   int n_orbitals = p["FLAVORS"];
   int n_matsubara = p["NMATSUBARA"];
-  alps::hdf5::archive ar(p["solver.INFILE_H5GF"], alps::hdf5::archive::READ);
+  alps::hdf5::archive ar(p["solver.INFILE_H5GF"], "r");
   alps::gf::omega_sigma_gf_with_tail G0_omega(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta_, n_matsubara), alps::gf::index_mesh(n_orbitals)));
   alps::gf::omega_sigma_gf_with_tail Delta_w(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta_, n_matsubara), alps::gf::index_mesh(n_orbitals)));
   alps::gf::itime_sigma_gf_with_tail Delta(alps::gf::itime_sigma_gf(alps::gf::itime_mesh(beta_, n_tau+1), alps::gf::index_mesh(n_orbitals)));

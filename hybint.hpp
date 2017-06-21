@@ -66,7 +66,7 @@ public:
       if(p.exists("MU") && !global_mpi_rank){ std::cout << "Warning::parameter MU_VECTOR exists, ignoring parameter MU" << std::flush << std::endl; };
       std::string mufilename=p["MU_VECTOR"];
       if(p.exists("MU_IN_HDF5") && p["MU_IN_HDF5"]){//attempt to read from h5 archive
-        alps::hdf5::archive ar(mufilename, alps::hdf5::archive::READ);
+        alps::hdf5::archive ar(mufilename, "r");
         ar>>alps::make_pvp("/MUvector",val_);
       }
       else{//read from text file

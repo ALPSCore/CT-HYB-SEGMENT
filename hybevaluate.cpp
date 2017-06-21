@@ -136,7 +136,7 @@ void evaluate_gtau(const alps::accumulators::result_set &results,
 
   if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF")){
     alps::gf::itime_sigma_gf_with_tail G_tau_h5gf=translate_Gt_to_h5gf(G_tau, parms);
-    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], "w");
     G_tau_h5gf.save(ar, "/G_tau");
     if(!(parms["cthyb.MEASURE_freq"])){
       throw std::logic_error("we did not measure in frequency. For the ALPS framework you need to add frequency measurement cthyb.MEASURE_freq");
@@ -200,8 +200,8 @@ void evaluate_freq(const alps::accumulators::result_set &results,
 
   if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF")){
     int n_matsubara = parms["NMATSUBARA"];
-    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
-    alps::hdf5::archive ar_in(parms["solver.INFILE_H5GF"], alps::hdf5::archive::READ);
+    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], "w");
+    alps::hdf5::archive ar_in(parms["solver.INFILE_H5GF"], "r");
     double shift = parms["U"].as<double>()/2;
     alps::gf::omega_sigma_gf_with_tail G0_omega(alps::gf::omega_sigma_gf(alps::gf::matsubara_positive_mesh(beta, n_matsubara), alps::gf::index_mesh(n_orbitals)));
     G0_omega.load(ar_in, "/G0");
@@ -388,7 +388,7 @@ void evaluate_legendre(const alps::accumulators::result_set &results,
 
   //overwriting G(tau) and G(omega) in the cthyb framework with those from the legendre polys
   if (parms.exists("cthyb.DMFT_FRAMEWORK") && parms["cthyb.DMFT_FRAMEWORK"] && parms.exists("solver.OUTFILE_H5GF")){
-    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], alps::hdf5::archive::WRITE);
+    alps::hdf5::archive ar(parms["solver.OUTFILE_H5GF"], "w");
     translate_Gw_to_h5gf(G_l_omega, parms).save(ar, "/G_omega");
     translate_Gt_to_h5gf(G_l_tau  , parms).save(ar, "/G_tau");
   }
