@@ -31,6 +31,7 @@
 #include <vector>
 #include <fstream>
 #include <alps/params.hpp>
+#include <alps/hdf5/vector.hpp>
 #include "./green_function.h"
 
 //the interaction matrix keeps track of the impurity density-density interactions (other interactions are not possible in this code). Two general methods: either specify U (and optionally J and U'), or define a matrix and write it into a file, from where it is read in.
@@ -67,7 +68,7 @@ public:
       std::string mufilename=p["MU_VECTOR"];
       if(p.exists("MU_IN_HDF5") && p["MU_IN_HDF5"]){//attempt to read from h5 archive
         alps::hdf5::archive ar(mufilename, alps::hdf5::archive::READ);
-        ar>>alps::make_pvp("/MUvector",val_);
+        ar["/MUvector"] >> val_;
       }
       else{//read from text file
         std::ifstream mu_file(mufilename.c_str());
