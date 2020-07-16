@@ -561,7 +561,7 @@ void evaluate_2p(const alps::accumulators::result_set &results,
   std::complex<double> gg,g2w,h2w,g2w_con,gamma;
 
   for(std::size_t i=0;i<n_orbitals;++i){
-    for(std::size_t j=0;j<=i;++j){
+    for(std::size_t j=0;j<n_orbitals;++j){
       if(MEASURE_g2w){
         std::stringstream g2w_re_name; g2w_re_name<<"g2w_re_"<<i<<"_"<<j;
         std::stringstream g2w_im_name; g2w_im_name<<"g2w_im_"<<i<<"_"<<j;

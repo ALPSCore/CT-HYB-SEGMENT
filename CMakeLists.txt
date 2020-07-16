@@ -18,6 +18,11 @@ endif()
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
+if (NOT ${ALPSCore_HAS_MPI})
+    message(FATAL_ERROR "MPI must be enabled in ALPSCore!")
+endif()
+add_definitions(-DUSE_MPI)
+
 # Request the ALPSCore package:
 find_package(ALPSCore COMPONENTS accumulators params mc hdf5 gf)
 find_package(LAPACK)

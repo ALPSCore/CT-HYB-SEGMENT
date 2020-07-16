@@ -126,7 +126,9 @@ void hybridization::create_measurements(){//called once in the constructor
         nnw_re[i][j].resize(N_W, 0.);
         measurements << vec_obs_t(nnw_re_name.str());
       }
-      if(MEASURE_g2w){    //the two-particle Green's function is large and error is usually not needed -> declare as simple observable
+    }
+    for(std::size_t j=0;j<n_orbitals;++j){//two-particle quantities (all pairs of i and j)
+      if(MEASURE_g2w){
         std::stringstream g2wr_name; g2wr_name<<"g2w_re_"<<i<<"_"<<j; g2wr_names[i].push_back(g2wr_name.str());
         std::stringstream g2wi_name; g2wi_name<<"g2w_im_"<<i<<"_"<<j; g2wi_names[i].push_back(g2wi_name.str());
         measurements << simple_vec_t(g2wr_name.str());
@@ -360,7 +362,7 @@ void hybridization::measure_G2w(std::vector<std::map<double,double> > &F_prefact
   hyb_config.measure_G2w(G2w, F2w, N_w2, N_w_aux, F_prefactor);
 
   for(std::size_t i=0;i<n_orbitals;++i){
-    for(std::size_t j=0;j<=i;++j){//we measure only for j<=i since results for ij and ji are exactly the same (no gain through averaging)
+    for(std::size_t j=0;j<n_orbitals;++j){
       for(std::size_t w2n=0; w2n<N_w2;++w2n)
         for(std::size_t w3n=0; w3n<N_w2;++w3n)
           for(std::size_t Wn=0; Wn<N_W;++Wn){
