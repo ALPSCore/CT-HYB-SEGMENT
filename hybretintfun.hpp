@@ -29,6 +29,7 @@
 #include <fstream>
 #include <alps/hdf5/vector.hpp>
 #include <alps/params.hpp>
+#include <alps/hdf5.hpp>
 #include "./green_function.h"
 #ifndef HYB_RET_INT_FUN_HPP
 #define HYB_RET_INT_FUN_HPP
