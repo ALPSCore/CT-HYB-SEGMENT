@@ -27,6 +27,7 @@
  *****************************************************************************/
 
 #include <fstream>
+#include <alps/hdf5/vector.hpp>
 #include <alps/params.hpp>
 #include <alps/hdf5.hpp>
 #include "./green_function.h"

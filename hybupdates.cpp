@@ -160,6 +160,7 @@ void hybridization::insert_segment_update(int orbital){
   double t_end=t_start+random()*t_next_segment_start;
   if(t_end > beta) t_end-=beta;
   if(local_config.exists(t_end)){ std::cerr<<"rare event, duplicate: "<<t_end<<std::endl; return;} //time already exists.
+  if(t_start == t_end){ std::cerr<<"rare event, t_start==t_end: "<<t_end<<std::endl; return;}
   
   //compute local weight of the new segment with t_start and t_end
   segment new_segment(t_start, t_end);
@@ -233,6 +234,7 @@ void hybridization::insert_antisegment_update(int orbital){
   double t_end=t_start+random()*t_next_segment_end;
   if(t_end > beta) t_end-=beta;
   if(local_config.exists(t_end)){ std::cerr<<"rare event, duplicate: "<<t_end<<std::endl; return;} //time already exists.
+  if(t_start == t_end){ std::cerr<<"rare event, t_start==t_end: "<<t_end<<std::endl; return;}
   
   //std::cout<<clgreen<<"antisegment insertion update: "<<std::endl<<cblack<<*this<<std::endl;
   //std::cout<<clgreen<<" antisegment start time: (cdagger): "<<t_start<<" end time (c): "<<t_end<<std::endl;
