@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.0)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+cmake_minimum_required(VERSION 3.12)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Not strictly necessary, but will create executables that are
 # aware of ALPSCore location
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 else()
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 
-project(alps_cthyb)
+project(alps_cthyb CXX)
 
 # Disable in-source builds
 if (${CMAKE_BINARY_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
@@ -19,19 +19,11 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Request the ALPSCore package:
-find_package(ALPSCore COMPONENTS accumulators params mc hdf5 gf)
-find_package(LAPACK)
-find_package(MPI)
-find_package(NFFT)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_DISABLE_ASSERTS -DNDEBUG")
-
-include_directories(
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${MPI_CXX_INCLUDE_PATH}
-    ${NFFT3_INCLUDE_DIRS}
-)
+find_package(ALPSCore REQUIRED COMPONENTS accumulators params mc hdf5 gf)
+find_package(Boost CONFIG REQUIRED)
+find_package(LAPACK REQUIRED)
+find_package(MPI REQUIRED)
+find_package(NFFT REQUIRED)
 
 set (ALPS_CTHYB_SOURCE
    hybsim.cpp
@@ -46,14 +38,38 @@ set (ALPS_CTHYB_SOURCE
    hybevaluate.cpp
    hybmeasurements.cpp)
 add_library(alps_hyb_exp ${ALPS_CTHYB_SOURCE})
-target_link_libraries(alps_hyb_exp ${ALPSCore_LIBRARIES} ${MPI_CXX_LIBRARIES} ${NFFT3_LIBRARIES})
+target_compile_definitions(alps_hyb_exp
+    PUBLIC
+        BOOST_DISABLE_ASSERTS
+        $<$<CONFIG:Release>:NDEBUG>
+        $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+        $<$<CONFIG:MinSizeRel>:NDEBUG>
+)
+target_include_directories(alps_hyb_exp
+    PUBLIC
+        "${CMAKE_SOURCE_DIR}"
+        "${CMAKE_BINARY_DIR}"
+        ${MPI_CXX_INCLUDE_DIRS}
+        ${NFFT3_INCLUDE_DIRS}
+)
+target_link_libraries(alps_hyb_exp
+    PUBLIC
+        ${ALPSCore_LIBRARIES}
+        ${MPI_CXX_LIBRARIES}
+        ${NFFT3_LIBRARIES}
+)
 set_target_properties(alps_hyb_exp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set(EXEC_NAME alps_cthyb)
 add_executable(${EXEC_NAME} hybmain.cpp)
-target_link_libraries(${EXEC_NAME} alps_hyb_exp ${ALPSCore_LIBRARIES} ${LAPACK_LIBRARIES})
+target_link_libraries(${EXEC_NAME}
+    PRIVATE
+        alps_hyb_exp
+        ${ALPSCore_LIBRARIES}
+        ${LAPACK_LIBRARIES}
+)
 set_target_properties(${EXEC_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-install (TARGETS ${EXEC_NAME} DESTINATION bin )
+install(TARGETS ${EXEC_NAME} DESTINATION bin)
 
 ### Additional installation files
 # configuration file for module managers, such as LMOD
