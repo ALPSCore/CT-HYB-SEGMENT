@@ -23,7 +23,7 @@ find_package(ALPSCore REQUIRED COMPONENTS accumulators params mc hdf5 gf)
 find_package(Boost REQUIRED)
 find_package(LAPACK REQUIRED)
 find_package(MPI)
-find_package(NFFT REQUIRED)
+find_package(NFFT3 REQUIRED)
 
 set (ALPS_CTHYB_SOURCE
    hybsim.cpp
