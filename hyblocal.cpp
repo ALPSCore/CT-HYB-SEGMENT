@@ -665,6 +665,4 @@ void local_configuration::measure_sector_statistics(std::vector<double> &sector_
     }
     sector_statistics[state+full_line_states]+=(beta_-tau)/beta_*sign;//don't forget the last interval
   }
-  double sum=0;
 }
-

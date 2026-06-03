@@ -78,6 +78,7 @@ double hybmatrix::hyb_weight_change_insert(const segment &new_segment, int orbit
 
 //actually insert an operator pair and change the configuration
 void hybmatrix::insert_segment(const segment &new_segment, int orbital){
+  (void)orbital;
   //std::cout<<clred<<"upon entering insert segment: "<<*this<<cblack<<std::endl;
   //consistency_check();
   //enlarge the M-matrix by one
@@ -113,6 +114,8 @@ void hybmatrix::insert_segment(const segment &new_segment, int orbital){
 }
 //compute the hybridization weight change when an operator pair is removed
 double hybmatrix::hyb_weight_change_remove(const segment &new_segment, int orbital, const hybfun &Delta){
+  (void)orbital;
+  (void)Delta;
   //std::cout<<clgreen<<"proposing to remove the segment: "<<new_segment<<cblack<<std::endl;
   int k1=cdagger_index_map_[new_segment.t_start_];
   int k2=c_index_map_[new_segment.t_end_];
@@ -132,6 +135,7 @@ double hybmatrix::hyb_weight_change_remove(const segment &new_segment, int orbit
 
 //actually remove an operator pair and change the configuration
 void hybmatrix::remove_segment(const segment &new_segment, int orbital){
+  (void)orbital;
   //std::cout<<clblue<<"upon entering remove segment: "<<*this<<cblack<<std::endl;
   //consistency_check();
   
@@ -355,5 +359,4 @@ void hybmatrix::measure_Gl(std::vector<double> &Gl, std::vector<double> &Fl , co
     }
   }
 }
-
 
