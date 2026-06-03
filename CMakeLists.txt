@@ -47,6 +47,7 @@ target_include_directories(alps_hyb_exp
     PUBLIC
         "${CMAKE_SOURCE_DIR}"
         "${CMAKE_BINARY_DIR}"
+        ${Boost_INCLUDE_DIRS}
         ${MPI_CXX_INCLUDE_DIRS}
         ${NFFT3_INCLUDE_DIRS}
 )
