@@ -35,7 +35,7 @@ hybridization_configuration::hybridization_configuration(const alps::params &p):
 }
 
 void hybridization_configuration::dump() {
-    for (int i=0;i<hybmat_.size();i++)
+    for (std::size_t i=0;i<hybmat_.size();i++)
         std::cout << "Weight for orbital " << i << " : " << hybmat_[i].full_weight() << std::endl;
 }
 

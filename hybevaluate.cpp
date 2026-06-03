@@ -34,6 +34,7 @@
 void evaluate_basics(const alps::accumulators::result_set &results,
                      const alps::params &parms,
                      alps::hdf5::archive &solver_output){
+  (void)solver_output;
 
   std::size_t n_orbitals=parms["FLAVORS"];
   double beta=parms["BETA"];
@@ -52,19 +53,22 @@ void evaluate_basics(const alps::accumulators::result_set &results,
       sim_file << "orbital " << i << ": " << order << std::endl;
     }
     {
-      int tot_acc=0,cur_prec = sim_file.precision();
-      for (int i=0;i<nacc.size();i++) tot_acc += nacc[i];
+      int tot_acc=0;
+      std::streamsize cur_prec = sim_file.precision();
+      for (std::size_t i=0;i<nacc.size();i++) tot_acc += nacc[i];
       sim_file << std::endl << "|------------- Simulation details after " << nsweeps << " sweeps ------------|" << std::endl;
       sim_file << "  Total acceptance rate = " << std::setprecision(2) << std::fixed;
       sim_file << (((double)tot_acc)/nsweeps)*100 << "%" << std::endl;
       sim_file << "  Individual acceptance rate for update " << std::endl;
-      for (int i=0;i<nacc.size();i++) {
+      for (std::size_t i=0;i<nacc.size();i++) {
           sim_file << "     " << update_type[i] << " = ";
           sim_file << std::setprecision(2) << std::fixed << (((double)nacc[i])/nsweeps)*100 << "%";
           sim_file << " (proposal rate = ";
           sim_file << std::setprecision(2) << std::fixed << (((double)nprop[i])/nsweeps)*100 << "%)" << std::endl;
       }
       sim_file << "|-----------------------------------------------------------------|" << std::endl;
+      sim_file.unsetf(std::ios_base::fixed);
+      sim_file.precision(cur_prec);
     }
     sim_file.close();
     std::ofstream obs_file("observables.dat");//equal-time correlators
@@ -481,6 +485,7 @@ void evaluate_nnw(const alps::accumulators::result_set &results,
 void evaluate_sector_statistics(const alps::accumulators::result_set &results,
                                 const alps::params &parms,
                                 alps::hdf5::archive &solver_output){
+  (void)solver_output;
 
   if(!(parms["cthyb.MEASURE_sector_statistics"].as<bool>())) return;
 
@@ -664,4 +669,3 @@ alps::gf::omega_sigma_gf_with_tail translate_Gw_to_h5gf(matsubara_green_function
   Gw_h5gf.set_tail(1, tail);
   return Gw_h5gf;
 }
-

@@ -43,8 +43,6 @@ void hybmatrix::measure_Gw(std::vector<double> &Gwr, std::vector<double> &Gwi , 
   for (hyb_map_t::const_iterator it= cdagger_index_map_.begin(); it != cdagger_index_map_.end(); ++it) {
     cdagger_times[it->second] = it->first;
   }
-  clock_t t_nfft_start=clock();
-
   int size2=size()*size();
   int n_omega_meas=Gwr.size();
   //nfft calculation
@@ -58,7 +56,6 @@ void hybmatrix::measure_Gw(std::vector<double> &Gwr, std::vector<double> &Gwi , 
 
   // init a one dimensional plan
   {
-    std::size_t nfft_flags_first = PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|FFTW_INIT| FFT_OUT_OF_PLACE;
     std::size_t nfft_flags_later = PRE_PHI_HUT| PRE_PSI| FFT_OUT_OF_PLACE;
     std::size_t fftw_flags= FFTW_MEASURE| FFTW_DESTROY_INPUT;
     static int n[1];
@@ -153,7 +150,6 @@ void hybmatrix::measure_G2w(std::vector<std::complex<double> > &G2w, std::vector
     cdagger_times[it->second] = it->first;
   }
 
-  int size2=size()*size();
   int n_omega_meas=N_w_aux;//this is the effective number of fermionic frequencies needed
 
   //nfft calculation

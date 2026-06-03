@@ -73,13 +73,14 @@ void hybridization::update(){
   }//N_meas
 
   if(VERBOSE && sweeps%10000==0 && crank==0) {
-    int tot_acc=0,cur_prec = std::cout.precision();
-    for (int i=0;i<nacc.size();i++) tot_acc += nacc[i];
+    int tot_acc=0;
+    std::streamsize cur_prec = std::cout.precision();
+    for (std::size_t i=0;i<nacc.size();i++) tot_acc += nacc[i];
     std::cout << std::endl << "|------------- Simulation details after " << sweeps << " sweeps ------------|" << std::endl;
     std::cout << "  Total acceptance rate = " << std::setprecision(2) << std::fixed;
     std::cout << (((double)tot_acc)/sweeps)*100 << "%" << std::endl;
     std::cout << "  Individual acceptance rate for update " << std::endl;
-    for (int i=0;i<nacc.size();i++) {
+    for (std::size_t i=0;i<nacc.size();i++) {
       std::cout << "     " << update_type[i] << " = ";
       std::cout << std::setprecision(2) << std::fixed << (((double)nacc[i])/sweeps)*100 << "%";
       std::cout << " (proposal rate = ";
@@ -371,4 +372,3 @@ void hybridization::spin_flip_update(int orbital){
     hyb_config.insert_segment(new_segment, orbital);
   }
 }
-
