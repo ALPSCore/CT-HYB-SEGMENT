@@ -20,9 +20,9 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Request the ALPSCore package:
 find_package(ALPSCore REQUIRED COMPONENTS accumulators params mc hdf5 gf)
-find_package(Boost CONFIG REQUIRED)
+find_package(Boost REQUIRED)
 find_package(LAPACK REQUIRED)
-find_package(MPI REQUIRED)
+find_package(MPI)
 find_package(NFFT REQUIRED)
 
 set (ALPS_CTHYB_SOURCE
