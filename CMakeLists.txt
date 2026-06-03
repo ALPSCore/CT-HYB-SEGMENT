@@ -41,9 +41,7 @@ add_library(alps_hyb_exp ${ALPS_CTHYB_SOURCE})
 target_compile_definitions(alps_hyb_exp
     PUBLIC
         BOOST_DISABLE_ASSERTS
-        $<$<CONFIG:Release>:NDEBUG>
-        $<$<CONFIG:RelWithDebInfo>:NDEBUG>
-        $<$<CONFIG:MinSizeRel>:NDEBUG>
+        $<$<NOT:$<CONFIG:Debug>>:NDEBUG>
 )
 target_include_directories(alps_hyb_exp
     PUBLIC
