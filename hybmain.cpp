@@ -30,7 +30,7 @@
 #include <ctime>
 #include "hyb.hpp"
 #include "hybevaluate.hpp"
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #ifdef ALPS_HAVE_MPI
 #include <alps/mc/mpiadapter.hpp>
